@@ -5,6 +5,7 @@ Also regenerates index.html (a simple dashboard page).
 """
 
 import csv
+import json as _json
 import os
 import re
 from datetime import datetime, timezone
@@ -12,7 +13,6 @@ from datetime import datetime, timezone
 import requests
 
 # -------- CONFIG --------
-# Change this to the Clayface trailer URL when it drops.
 VIDEO_URL = "https://www.youtube.com/watch?v=5xQ2LZCknfc"
 OUTPUT_CSV = "view_counts.csv"
 OUTPUT_HTML = "index.html"
@@ -20,11 +20,13 @@ OUTPUT_HTML = "index.html"
 
 HEADERS = {
     "User-Agent": (
-        "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) "
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
         "AppleWebKit/537.36 (KHTML, like Gecko) "
-        "Chrome/122.0.0.0 Safari/537.36"
+        "Chrome/124.0.0.0 Safari/537.36"
     ),
     "Accept-Language": "en-US,en;q=0.9",
+    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+    "Cookie": "CONSENT=YES+cb; SOCS=CAISEwgDEgk0ODE3Nzk3MjQaAmVuIAEaBgiA_LyaBg",
 }
 
 CSV_FIELDS = ["timestamp_utc", "view_count", "title"]
@@ -35,19 +37,45 @@ def fetch_stats(video_url: str) -> dict:
     r.raise_for_status()
     html = r.text
 
-    view_match = re.search(r'"viewCount":"(\d+)"', html)
-    if not view_match:
-        raise RuntimeError("Could not find viewCount in page HTML")
-    views = int(view_match.group(1))
+    views = None
+    title = ""
 
-    title_match = re.search(r'"title":"([^"]+)","lengthSeconds"', html)
-    title = title_match.group(1) if title_match else ""
+    # Strategy 1: viewCount in the ytInitialPlayerResponse JSON blob
+    m = re.search(r'"viewCount":"(\d+)"', html)
+    if m:
+        views = int(m.group(1))
+
+    # Strategy 2: interactionCount in the schema.org meta block
+    if views is None:
+        m = re.search(r'"interactionCount":"(\d+)"', html)
+        if m:
+            views = int(m.group(1))
+
+    # Strategy 3: og meta view count
+    if views is None:
+        m = re.search(r'<meta itemprop="interactionCount" content="(\d+)"', html)
+        if m:
+            views = int(m.group(1))
+
+    if views is None:
+        # Dump a small diagnostic snippet to help debug future breakage
+        snippet = html[:400].replace("\n", " ")
+        raise RuntimeError(f"Could not find view count. First 400 chars: {snippet!r}")
+
+    # Title
+    m = re.search(r'"title":"([^"]+)","lengthSeconds"', html)
+    if m:
+        title = m.group(1)
+    else:
+        m = re.search(r'<meta name="title" content="([^"]+)"', html)
+        if m:
+            title = m.group(1)
 
     return {"view_count": views, "title": title}
 
 
 def append_row(path: str, row: dict) -> None:
-    new_file = not os.path.exists(path)
+    new_file = not os.path.exists(path) or os.path.getsize(path) == 0
     with open(path, "a", newline="", encoding="utf-8") as f:
         writer = csv.DictWriter(f, fieldnames=CSV_FIELDS)
         if new_file:
@@ -63,7 +91,6 @@ def read_rows(path: str) -> list:
 
 
 def build_html(rows: list) -> str:
-    """Generate a simple self-contained dashboard page."""
     if not rows:
         body_meta = "<p><em>No readings yet.</em></p>"
         table_rows = ""
@@ -74,8 +101,7 @@ def build_html(rows: list) -> str:
         first = rows[0]
         video_title = latest.get("title", "")
         try:
-            latest_views = int(latest["view_count"])
-            latest_views_str = f"{latest_views:,}"
+            latest_views_str = f"{int(latest['view_count']):,}"
         except (ValueError, KeyError):
             latest_views_str = "—"
 
@@ -87,7 +113,6 @@ def build_html(rows: list) -> str:
             f"<strong>Tracking since:</strong> {first['timestamp_utc']} UTC</p>"
         )
 
-        # Build table rows with delta vs previous
         prev = None
         trs = []
         for i, r in enumerate(rows, start=1):
@@ -105,8 +130,6 @@ def build_html(rows: list) -> str:
             )
         table_rows = "\n".join(trs)
 
-        # Chart data
-        import json as _json
         chart_points = []
         for i, r in enumerate(rows):
             try:
