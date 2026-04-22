@@ -5,3 +5,4 @@ timestamp_utc,view_count,title
 2026-04-22T12:40:46+00:00,175000,Clayface | Official Teaser Trailer (DEMO DATA)
 2026-04-22T13:40:46+00:00,260000,Clayface | Official Teaser Trailer (DEMO DATA)
 2026-04-22T14:40:46+00:00,340000,Clayface | Official Teaser Trailer (DEMO DATA)
+2026-04-22T15:06:51+00:00,,ERROR: Could not find viewCount in page HTML
