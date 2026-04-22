@@ -24,6 +24,8 @@ jobs:
         run: pip install requests
 
       - name: Run tracker
+        env:
+          YOUTUBE_API_KEY: ${{ secrets.YOUTUBE_API_KEY }}
         run: python tracker.py
 
       - name: Commit updated data
