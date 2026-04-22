@@ -1,0 +1,94 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>YouTube View Tracker — Clayface | Official Teaser Trailer (DEMO DATA)</title>
+<style>
+  body { font-family: -apple-system, system-ui, sans-serif; margin: 2rem; max-width: 900px; color: #222; }
+  h1 { margin-bottom: 0.25rem; }
+  p { line-height: 1.5; }
+  table { border-collapse: collapse; width: 100%; font-size: 0.9rem; margin-top: 1rem; }
+  th, td { border: 1px solid #ddd; padding: 0.4rem 0.6rem; text-align: left; }
+  th { background: #f3f3f3; }
+  tr:nth-child(even) { background: #fafafa; }
+  .num { text-align: right; font-variant-numeric: tabular-nums; }
+  .chart { margin: 1.5rem 0; border: 1px solid #ddd; padding: 0.5rem; }
+  .controls a { display: inline-block; padding: 0.4rem 0.8rem; border: 1px solid #888;
+                 background: #fff; text-decoration: none; color: #000; border-radius: 3px;
+                 margin-right: 0.5rem; }
+  .footer { margin-top: 2rem; color: #888; font-size: 0.85rem; }
+</style>
+</head>
+<body>
+<h1>YouTube View Tracker</h1>
+<p><strong>Video:</strong> Clayface | Official Teaser Trailer (DEMO DATA)<br><strong>Latest view count:</strong> 340,000<br><strong>Latest reading:</strong> 2026-04-22T14:40:46+00:00 UTC<br><strong>Readings so far:</strong> 6<br><strong>Tracking since:</strong> 2026-04-22T09:40:46+00:00 UTC</p>
+
+<div class="controls">
+  <a href="view_counts.csv" download>Download CSV</a>
+  <a href=".">Refresh</a>
+</div>
+
+<div class="chart">
+  <svg id="chart" width="100%" height="280" viewBox="0 0 900 280" preserveAspectRatio="none"></svg>
+</div>
+
+<table>
+  <thead>
+    <tr>
+      <th>#</th>
+      <th>Timestamp (UTC)</th>
+      <th class="num">View count</th>
+      <th class="num">Delta</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr><td>1</td><td>2026-04-22T09:40:46+00:00</td><td class='num'>12,000</td><td class='num'>—</td></tr>
+<tr><td>2</td><td>2026-04-22T10:40:46+00:00</td><td class='num'>45,000</td><td class='num'>33,000</td></tr>
+<tr><td>3</td><td>2026-04-22T11:40:46+00:00</td><td class='num'>98,000</td><td class='num'>53,000</td></tr>
+<tr><td>4</td><td>2026-04-22T12:40:46+00:00</td><td class='num'>175,000</td><td class='num'>77,000</td></tr>
+<tr><td>5</td><td>2026-04-22T13:40:46+00:00</td><td class='num'>260,000</td><td class='num'>85,000</td></tr>
+<tr><td>6</td><td>2026-04-22T14:40:46+00:00</td><td class='num'>340,000</td><td class='num'>80,000</td></tr>
+  </tbody>
+</table>
+
+<p class="footer">
+  Auto-updated hourly by GitHub Actions. View count is scraped from the public
+  YouTube watch page; YouTube throttles and de-duplicates counts, so treat the
+  curve shape as the signal rather than any single hour's value.
+</p>
+
+<script>
+const points = [{"i": 0, "v": 12000, "t": "2026-04-22T09:40:46+00:00"}, {"i": 1, "v": 45000, "t": "2026-04-22T10:40:46+00:00"}, {"i": 2, "v": 98000, "t": "2026-04-22T11:40:46+00:00"}, {"i": 3, "v": 175000, "t": "2026-04-22T12:40:46+00:00"}, {"i": 4, "v": 260000, "t": "2026-04-22T13:40:46+00:00"}, {"i": 5, "v": 340000, "t": "2026-04-22T14:40:46+00:00"}];
+const svg = document.getElementById('chart');
+if (points.length < 2) {
+  svg.innerHTML = '<text x="20" y="30" fill="#999">Need at least 2 readings to plot.</text>';
+} else {
+  const W = 900, H = 280, pad = 50;
+  const maxI = Math.max(...points.map(p => p.i));
+  const maxV = Math.max(...points.map(p => p.v));
+  const minV = Math.min(...points.map(p => p.v));
+  const range = Math.max(1, maxV - minV);
+  const xScale = i => pad + (i / Math.max(1, maxI)) * (W - 2 * pad);
+  const yScale = v => (H - pad) - ((v - minV) / range) * (H - 2 * pad);
+
+  let path = '';
+  points.forEach((p, idx) => {
+    path += (idx === 0 ? 'M' : 'L') + xScale(p.i) + ' ' + yScale(p.v) + ' ';
+  });
+  const dots = points.map(p =>
+    '<circle cx="' + xScale(p.i) + '" cy="' + yScale(p.v) + '" r="3" fill="#c00">' +
+    '<title>' + p.t + ' — ' + p.v.toLocaleString() + ' views</title></circle>'
+  ).join('');
+
+  svg.innerHTML =
+    '<line x1="' + pad + '" y1="' + (H - pad) + '" x2="' + (W - pad) + '" y2="' + (H - pad) + '" stroke="#888"/>' +
+    '<line x1="' + pad + '" y1="' + pad + '" x2="' + pad + '" y2="' + (H - pad) + '" stroke="#888"/>' +
+    '<text x="' + pad + '" y="' + (pad - 10) + '" font-size="11" fill="#666">' + maxV.toLocaleString() + ' views</text>' +
+    '<text x="' + pad + '" y="' + (H - pad + 20) + '" font-size="11" fill="#666">reading 1</text>' +
+    '<text x="' + (W - pad - 70) + '" y="' + (H - pad + 20) + '" font-size="11" fill="#666">reading ' + points.length + '</text>' +
+    '<path d="' + path + '" fill="none" stroke="#c00" stroke-width="2"/>' +
+    dots;
+}
+</script>
+</body>
+</html>
