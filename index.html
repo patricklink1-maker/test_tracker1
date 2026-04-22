@@ -6,361 +6,310 @@
 <title>View Tracker — All-Star Superman - Clark's interview with Lex Luthor 🤓 | DC</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500;600&family=IBM+Plex+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700;900&family=Source+Serif+4:ital,wght@0,400;0,500;0,600;1,400&family=Source+Sans+3:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
   :root {
-    --bg: #0a0a0b;
-    --bg-elev: #111113;
-    --bg-card: #141418;
-    --border: #1f1f24;
-    --border-hover: #2a2a30;
-    --text: #e8e8ea;
-    --text-dim: #8a8a92;
-    --text-faint: #5a5a62;
-    --accent: #ff3b30;
-    --accent-glow: rgba(255, 59, 48, 0.15);
-    --accent-soft: rgba(255, 59, 48, 0.08);
-    --positive: #4ade80;
-    --negative: #ff3b30;
+    --paper: #fdfcf8;
+    --paper-shade: #f5f3ec;
+    --rule: #d9d6cc;
+    --ink: #1a1a1a;
+    --ink-soft: #3d3d3d;
+    --ink-faint: #6b6b6b;
+    --ink-quiet: #9a9a94;
+    --accent: #a01818;
+    --positive: #1f6b3a;
   }
-
   * { box-sizing: border-box; }
-
   html, body {
-    margin: 0;
-    padding: 0;
-    background: var(--bg);
-    color: var(--text);
-    font-family: 'IBM Plex Sans', -apple-system, sans-serif;
-    font-weight: 400;
+    margin: 0; padding: 0;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: 'Source Serif 4', Georgia, serif;
     -webkit-font-smoothing: antialiased;
     min-height: 100vh;
   }
+  .container { max-width: 960px; margin: 0 auto; padding: 3rem 2rem 4rem; }
 
-  body {
-    background:
-      radial-gradient(ellipse 80% 50% at 50% -10%, var(--accent-soft), transparent),
-      radial-gradient(ellipse 60% 40% at 80% 100%, rgba(255,59,48,0.03), transparent),
-      var(--bg);
-    background-attachment: fixed;
-  }
-
-  .container {
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 3rem 2rem 4rem;
-  }
-
-  /* Header */
-  .header {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-end;
-    border-bottom: 1px solid var(--border);
-    padding-bottom: 1.25rem;
+  .masthead {
+    text-align: center;
+    border-bottom: 3px double var(--ink);
+    padding-bottom: 1.5rem;
     margin-bottom: 2rem;
-    flex-wrap: wrap;
-    gap: 1rem;
   }
-  .brand {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
+  .mast-label {
+    font-family: 'Source Sans 3', sans-serif;
+    font-size: 0.7rem;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    margin-bottom: 0.75rem;
   }
-  .brand-dot {
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-    background: var(--accent);
-    box-shadow: 0 0 12px var(--accent);
-    animation: pulse 2s ease-in-out infinite;
+  .mast-title {
+    font-family: 'Playfair Display', Georgia, serif;
+    font-size: clamp(2.5rem, 6vw, 3.75rem);
+    font-weight: 900;
+    line-height: 1;
+    letter-spacing: -0.01em;
+    margin: 0;
   }
-  @keyframes pulse {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0.4; }
-  }
-  .brand-label {
-    font-family: 'IBM Plex Mono', monospace;
+  .mast-date {
+    font-family: 'Source Sans 3', sans-serif;
     font-size: 0.75rem;
-    font-weight: 500;
     letter-spacing: 0.15em;
     text-transform: uppercase;
-    color: var(--text-dim);
-  }
-  .header-meta {
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 0.7rem;
-    color: var(--text-faint);
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
+    color: var(--ink-faint);
+    margin-top: 0.75rem;
   }
 
-  /* Title block */
-  .title-block {
-    margin-bottom: 3rem;
+  .article-header {
+    text-align: center;
+    margin-bottom: 2.5rem;
   }
-  .eyebrow {
-    font-family: 'IBM Plex Mono', monospace;
+  .kicker {
+    font-family: 'Source Sans 3', sans-serif;
     font-size: 0.7rem;
     letter-spacing: 0.2em;
     text-transform: uppercase;
     color: var(--accent);
+    font-weight: 600;
     margin-bottom: 0.75rem;
   }
-  h1.video-title {
-    font-family: 'IBM Plex Sans', sans-serif;
-    font-size: clamp(1.5rem, 4vw, 2.25rem);
-    font-weight: 600;
-    margin: 0;
-    letter-spacing: -0.02em;
-    line-height: 1.15;
+  h1.headline {
+    font-family: 'Playfair Display', Georgia, serif;
+    font-weight: 700;
+    font-size: clamp(1.5rem, 3.5vw, 2.25rem);
+    line-height: 1.2;
+    letter-spacing: -0.01em;
+    margin: 0 auto;
+    max-width: 700px;
+  }
+  .standfirst {
+    font-family: 'Source Serif 4', serif;
+    font-style: italic;
+    color: var(--ink-soft);
+    font-size: 1rem;
+    margin-top: 1rem;
+    max-width: 600px;
+    margin-left: auto;
+    margin-right: auto;
+    line-height: 1.5;
   }
 
-  /* Stats grid */
   .stats {
     display: grid;
-    grid-template-columns: 2fr 1fr 1fr 1fr;
-    gap: 1px;
-    background: var(--border);
-    border: 1px solid var(--border);
-    border-radius: 6px;
-    overflow: hidden;
+    grid-template-columns: repeat(3, 1fr);
+    border-top: 1px solid var(--rule);
+    border-bottom: 1px solid var(--rule);
     margin-bottom: 2.5rem;
   }
-  @media (max-width: 780px) {
-    .stats { grid-template-columns: 1fr 1fr; }
+  .stats.secondary {
+    grid-template-columns: repeat(3, 1fr);
+    border-top: none;
+    margin-top: -2.5rem;
+    margin-bottom: 2.5rem;
+    border-bottom: 1px solid var(--rule);
+  }
+  @media (max-width: 720px) {
+    .stats, .stats.secondary { grid-template-columns: 1fr 1fr; }
   }
   .stat {
-    background: var(--bg-card);
-    padding: 1.5rem 1.5rem;
-    position: relative;
+    padding: 1.5rem 1rem;
+    text-align: center;
+    border-right: 1px solid var(--rule);
   }
-  .stat.hero {
-    background: linear-gradient(135deg, var(--bg-card), var(--bg-elev));
-  }
+  .stat:last-child { border-right: none; }
   .stat-label {
-    font-family: 'IBM Plex Mono', monospace;
+    font-family: 'Source Sans 3', sans-serif;
     font-size: 0.65rem;
-    font-weight: 500;
-    letter-spacing: 0.15em;
+    letter-spacing: 0.18em;
     text-transform: uppercase;
-    color: var(--text-faint);
-    margin-bottom: 0.75rem;
+    color: var(--ink-faint);
+    margin-bottom: 0.6rem;
   }
   .stat-value {
-    font-family: 'IBM Plex Mono', monospace;
-    font-weight: 500;
-    font-variant-numeric: tabular-nums;
-    letter-spacing: -0.02em;
+    font-family: 'Playfair Display', serif;
+    font-weight: 700;
+    font-size: 2rem;
     line-height: 1;
-    color: var(--text);
+    color: var(--ink);
+    font-variant-numeric: tabular-nums;
   }
-  .stat.hero .stat-value {
-    font-size: clamp(2.5rem, 6vw, 3.75rem);
-    color: var(--accent);
-  }
-  .stat:not(.hero) .stat-value {
-    font-size: 1.5rem;
-  }
+  .stat.hero .stat-value { font-size: 2.75rem; color: var(--accent); }
   .stat-sub {
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 0.7rem;
-    color: var(--text-dim);
+    font-family: 'Source Serif 4', serif;
+    font-style: italic;
+    font-size: 0.8rem;
+    color: var(--ink-faint);
     margin-top: 0.5rem;
-    letter-spacing: 0.05em;
   }
 
-  /* Chart */
-  .chart-card {
-    background: var(--bg-card);
-    border: 1px solid var(--border);
-    border-radius: 6px;
-    padding: 1.5rem 1.5rem 1rem;
-    margin-bottom: 2.5rem;
-  }
-  .chart-head {
+  .section-title {
+    font-family: 'Playfair Display', serif;
+    font-weight: 600;
+    font-size: 1rem;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: var(--ink);
+    border-bottom: 2px solid var(--ink);
+    padding-bottom: 0.5rem;
+    margin-bottom: 1.25rem;
     display: flex;
     justify-content: space-between;
-    align-items: center;
-    margin-bottom: 1rem;
+    align-items: flex-end;
   }
-  .chart-title {
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 0.7rem;
-    letter-spacing: 0.15em;
-    text-transform: uppercase;
-    color: var(--text-dim);
-  }
-  .chart-actions a {
-    font-family: 'IBM Plex Mono', monospace;
+  .section-actions a {
+    font-family: 'Source Sans 3', sans-serif;
     font-size: 0.7rem;
     letter-spacing: 0.1em;
     text-transform: uppercase;
-    color: var(--text-dim);
+    color: var(--ink-faint);
     text-decoration: none;
-    padding: 0.4rem 0.75rem;
-    border: 1px solid var(--border);
-    border-radius: 4px;
-    margin-left: 0.5rem;
-    transition: all 0.15s ease;
+    margin-left: 1rem;
+    border-bottom: 1px solid var(--ink-quiet);
+    padding-bottom: 2px;
+    transition: color 0.15s ease;
   }
-  .chart-actions a:hover {
-    color: var(--accent);
-    border-color: var(--accent);
-    background: var(--accent-soft);
-  }
-  svg#chart { display: block; width: 100%; height: 320px; }
+  .section-actions a:hover { color: var(--accent); border-color: var(--accent); }
 
-  /* Table */
-  .table-card {
-    background: var(--bg-card);
-    border: 1px solid var(--border);
-    border-radius: 6px;
-    overflow: hidden;
-  }
-  .table-head {
-    padding: 1.25rem 1.5rem;
-    border-bottom: 1px solid var(--border);
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 0.7rem;
-    letter-spacing: 0.15em;
-    text-transform: uppercase;
-    color: var(--text-dim);
-  }
+  .chart-wrap { margin-bottom: 3rem; }
+  svg#chart { display: block; width: 100%; height: 340px; }
+
   table {
     width: 100%;
     border-collapse: collapse;
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 0.85rem;
+    font-family: 'Source Serif 4', serif;
+    font-size: 0.9rem;
   }
-  th {
+  thead th {
     text-align: left;
-    padding: 0.75rem 1.5rem;
-    font-weight: 500;
+    padding: 0.6rem 0.75rem;
+    font-family: 'Source Sans 3', sans-serif;
+    font-weight: 600;
     font-size: 0.7rem;
-    letter-spacing: 0.1em;
+    letter-spacing: 0.12em;
     text-transform: uppercase;
-    color: var(--text-faint);
-    border-bottom: 1px solid var(--border);
-    background: var(--bg-elev);
+    color: var(--ink-faint);
+    border-bottom: 1px solid var(--ink);
   }
-  td {
-    padding: 0.9rem 1.5rem;
-    border-bottom: 1px solid var(--border);
-    color: var(--text);
+  tbody td {
+    padding: 0.7rem 0.75rem;
+    border-bottom: 1px solid var(--rule);
+    color: var(--ink);
     font-variant-numeric: tabular-nums;
+    vertical-align: middle;
   }
-  tr:last-child td { border-bottom: none; }
-  tr:hover td { background: var(--bg-elev); }
-  .idx { color: var(--text-faint); width: 3rem; }
-  .num { text-align: right; }
+  tbody tr:hover td { background: var(--paper-shade); }
+  .idx { color: var(--ink-quiet); width: 2.5rem; font-family: 'Source Sans 3', sans-serif; font-size: 0.8rem; }
+  .tdate { font-weight: 500; }
+  .ttime { color: var(--ink-faint); font-size: 0.8rem; font-style: italic; }
+  .num { text-align: right; font-family: 'Source Sans 3', sans-serif; }
   .num.delta { color: var(--positive); }
-  .tstack { display: flex; flex-direction: column; gap: 0.1rem; }
-  .tdate { color: var(--text); }
-  .ttime { color: var(--text-faint); font-size: 0.75rem; }
-  .empty { text-align: center; color: var(--text-faint); padding: 2.5rem; font-style: italic; }
+  .empty { text-align: center; color: var(--ink-quiet); padding: 2.5rem; font-style: italic; }
 
-  /* Footer */
-  .footer {
+  .colophon {
     margin-top: 3rem;
     padding-top: 1.5rem;
-    border-top: 1px solid var(--border);
-    display: flex;
-    justify-content: space-between;
-    flex-wrap: wrap;
-    gap: 0.5rem;
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 0.7rem;
-    color: var(--text-faint);
-    letter-spacing: 0.05em;
+    border-top: 1px solid var(--rule);
+    font-family: 'Source Sans 3', sans-serif;
+    font-size: 0.75rem;
+    color: var(--ink-quiet);
+    text-align: center;
+    letter-spacing: 0.03em;
+    line-height: 1.6;
   }
 </style>
 </head>
 <body>
 <div class="container">
 
-  <div class="header">
-    <div class="brand">
-      <div class="brand-dot"></div>
-      <span class="brand-label">Live Tracker</span>
-    </div>
-    <div class="header-meta">
-      2 readings · 0.2h elapsed
-    </div>
+  <div class="masthead">
+    <div class="mast-label">The Trailer Tracker</div>
+    <h1 class="mast-title">Views &amp; Signals</h1>
+    <div class="mast-date">Wednesday, April 22, 2026  ·  1 Readings  ·  0h Elapsed</div>
   </div>
 
-  <div class="title-block">
-    <div class="eyebrow">Tracked Asset</div>
-    <h1 class="video-title">All-Star Superman - Clark's interview with Lex Luthor 🤓 | DC</h1>
+  <div class="article-header">
+    <div class="kicker">Currently Tracking</div>
+    <h1 class="headline">All-Star Superman - Clark's interview with Lex Luthor 🤓 | DC</h1>
+    <p class="standfirst">An hourly record of public engagement, captured via the YouTube Data API and updated automatically.</p>
   </div>
 
   <div class="stats">
     <div class="stat hero">
-      <div class="stat-label">Current Views</div>
-      <div class="stat-value">3,578</div>
-      <div class="stat-sub">Last reading · 2026-04-22 15:51 UTC</div>
+      <div class="stat-label">Views</div>
+      <div class="stat-value">3,759</div>
+      <div class="stat-sub">most recent reading</div>
     </div>
     <div class="stat">
-      <div class="stat-label">Last Hour Δ</div>
-      <div class="stat-value">+17</div>
+      <div class="stat-label">Likes</div>
+      <div class="stat-value">512</div>
+      <div class="stat-sub">cumulative</div>
+    </div>
+    <div class="stat">
+      <div class="stat-label">Comments</div>
+      <div class="stat-value">0</div>
+      <div class="stat-sub">cumulative</div>
+    </div>
+  </div>
+
+  <div class="stats secondary">
+    <div class="stat">
+      <div class="stat-label">Last Hour</div>
+      <div class="stat-value" style="font-size:1.5rem">—</div>
       <div class="stat-sub">views / hour</div>
     </div>
     <div class="stat">
-      <div class="stat-label">Avg Rate</div>
-      <div class="stat-value">+17</div>
+      <div class="stat-label">Average Pace</div>
+      <div class="stat-value" style="font-size:1.5rem">—</div>
       <div class="stat-sub">views / hour since launch</div>
     </div>
     <div class="stat">
-      <div class="stat-label">Peak Rate</div>
-      <div class="stat-value">17</div>
-      <div class="stat-sub">highest hourly velocity</div>
+      <div class="stat-label">Peak Hour</div>
+      <div class="stat-value" style="font-size:1.5rem">—</div>
+      <div class="stat-sub">highest velocity observed</div>
     </div>
   </div>
 
-  <div class="chart-card">
-    <div class="chart-head">
-      <div class="chart-title">Cumulative Views</div>
-      <div class="chart-actions">
-        <a href="view_counts.csv" download>Download CSV</a>
+  <div class="chart-wrap">
+    <div class="section-title">
+      <span>Cumulative View Count</span>
+      <span class="section-actions">
+        <a href="view_counts.csv" download>Download data</a>
         <a href=".">Refresh</a>
-      </div>
+      </span>
     </div>
-    <svg id="chart" viewBox="0 0 1100 320" preserveAspectRatio="none"></svg>
+    <svg id="chart" viewBox="0 0 1100 340" preserveAspectRatio="none"></svg>
   </div>
 
-  <div class="table-card">
-    <div class="table-head">Reading Log</div>
-    <table>
-      <thead>
-        <tr>
-          <th>#</th>
-          <th>Timestamp</th>
-          <th class="num">Views</th>
-          <th class="num">Δ</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr><td class="idx">01</td><td><div class="tstack"><span class="tdate">Apr 22</span><span class="ttime">15:37 UTC</span></div></td><td class="num">3,574</td><td class="num delta">—</td></tr>
-<tr><td class="idx">02</td><td><div class="tstack"><span class="tdate">Apr 22</span><span class="ttime">15:51 UTC</span></div></td><td class="num">3,578</td><td class="num delta">+4</td></tr>
-      </tbody>
-    </table>
-  </div>
+  <div class="section-title"><span>Reading Log</span></div>
+  <table>
+    <thead>
+      <tr>
+        <th>№</th>
+        <th>Timestamp</th>
+        <th class="num">Views</th>
+        <th class="num">Δ Views</th>
+        <th class="num">Likes</th>
+        <th class="num">Comments</th>
+      </tr>
+    </thead>
+    <tbody><tr><td class="idx">1</td><td><div class="tdate">Apr 22</div><div class="ttime">18:03 UTC</div></td><td class="num">3,759</td><td class="num delta">—</td><td class="num">512</td><td class="num">0</td></tr></tbody>
+  </table>
 
-  <div class="footer">
-    <span>Auto-updated hourly via GitHub Actions + YouTube Data API</span>
-    <span>Tracking since 2026-04-22 15:37 UTC</span>
+  <div class="colophon">
+    Auto-updated hourly via GitHub Actions and the YouTube Data API.<br>
+    Tracking since 2026-04-22 18:03 UTC  ·  Latest reading 2026-04-22 18:03 UTC
   </div>
 
 </div>
 
 <script>
-const points = [{"i": 0, "v": 3574, "t": "2026-04-22T15:37:36+00:00"}, {"i": 1, "v": 3578, "t": "2026-04-22T15:51:31+00:00"}];
+const points = [{"i": 0, "v": 3759, "t": "2026-04-22T18:03:18+00:00"}];
 const svg = document.getElementById('chart');
-
 if (points.length < 2) {
-  svg.innerHTML = '<text x="50%" y="50%" text-anchor="middle" fill="#5a5a62" font-family="IBM Plex Mono, monospace" font-size="12" letter-spacing="2">AWAITING SECOND READING</text>';
+  svg.innerHTML = '<text x="50%" y="50%" text-anchor="middle" fill="#9a9a94" font-family="Source Serif 4, Georgia, serif" font-style="italic" font-size="14">Awaiting second reading…</text>';
 } else {
-  const W = 1100, H = 320, padL = 70, padR = 20, padT = 20, padB = 40;
+  const W = 1100, H = 340, padL = 75, padR = 20, padT = 20, padB = 40;
   const maxI = Math.max(...points.map(p => p.i));
   const maxV = Math.max(...points.map(p => p.v));
   const minV = Math.min(...points.map(p => p.v));
@@ -369,23 +318,20 @@ if (points.length < 2) {
   const yMin = Math.max(0, minV - padY);
   const yMax = maxV + padY;
   const yRange = Math.max(1, yMax - yMin);
-
   const xScale = i => padL + (i / Math.max(1, maxI)) * (W - padL - padR);
   const yScale = v => (H - padB) - ((v - yMin) / yRange) * (H - padT - padB);
 
-  // Grid lines
   const gridLines = [];
   const gridCount = 4;
   for (let g = 0; g <= gridCount; g++) {
     const y = padT + (g / gridCount) * (H - padT - padB);
     const val = Math.round(yMax - (g / gridCount) * yRange);
     gridLines.push(
-      `<line x1="${padL}" y1="${y}" x2="${W - padR}" y2="${y}" stroke="#1f1f24" stroke-width="1"/>` +
-      `<text x="${padL - 12}" y="${y + 4}" text-anchor="end" fill="#5a5a62" font-family="IBM Plex Mono, monospace" font-size="10">${val.toLocaleString()}</text>`
+      `<line x1="${padL}" y1="${y}" x2="${W - padR}" y2="${y}" stroke="#d9d6cc" stroke-width="1" stroke-dasharray="2,3"/>` +
+      `<text x="${padL - 12}" y="${y + 4}" text-anchor="end" fill="#6b6b6b" font-family="Source Sans 3, sans-serif" font-size="11">${val.toLocaleString()}</text>`
     );
   }
 
-  // X-axis labels
   const xLabels = [];
   const xLabelCount = Math.min(points.length, 6);
   for (let xi = 0; xi < xLabelCount; xi++) {
@@ -393,41 +339,37 @@ if (points.length < 2) {
     const p = points[idx];
     if (!p) continue;
     const x = xScale(p.i);
-    const label = 'r' + String(p.i + 1).padStart(2, '0');
+    const label = String(p.i + 1);
     xLabels.push(
-      `<text x="${x}" y="${H - padB + 20}" text-anchor="middle" fill="#5a5a62" font-family="IBM Plex Mono, monospace" font-size="10">${label}</text>`
+      `<text x="${x}" y="${H - padB + 22}" text-anchor="middle" fill="#6b6b6b" font-family="Source Sans 3, sans-serif" font-size="11">${label}</text>`
     );
   }
 
-  // Area under line
   let areaPath = 'M' + xScale(points[0].i) + ' ' + (H - padB) + ' ';
   points.forEach(p => { areaPath += 'L' + xScale(p.i) + ' ' + yScale(p.v) + ' '; });
   areaPath += 'L' + xScale(points[points.length - 1].i) + ' ' + (H - padB) + ' Z';
 
-  // Line
   let linePath = '';
   points.forEach((p, idx) => {
     linePath += (idx === 0 ? 'M' : 'L') + xScale(p.i) + ' ' + yScale(p.v) + ' ';
   });
 
-  // Dots
   const dots = points.map(p =>
-    `<circle cx="${xScale(p.i)}" cy="${yScale(p.v)}" r="3.5" fill="#0a0a0b" stroke="#ff3b30" stroke-width="2">` +
-    `<title>${p.t} — ${p.v.toLocaleString()} views</title></circle>`
+    `<circle cx="${xScale(p.i)}" cy="${yScale(p.v)}" r="3" fill="#a01818"><title>${p.t} — ${p.v.toLocaleString()} views</title></circle>`
   ).join('');
 
   svg.innerHTML =
-    `<defs>
-      <linearGradient id="areaGrad" x1="0" y1="0" x2="0" y2="1">
-        <stop offset="0%" stop-color="#ff3b30" stop-opacity="0.25"/>
-        <stop offset="100%" stop-color="#ff3b30" stop-opacity="0"/>
-      </linearGradient>
-    </defs>` +
+    `<defs><linearGradient id="areaGrad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#a01818" stop-opacity="0.12"/>
+      <stop offset="100%" stop-color="#a01818" stop-opacity="0"/>
+    </linearGradient></defs>` +
     gridLines.join('') +
     `<path d="${areaPath}" fill="url(#areaGrad)"/>` +
-    `<path d="${linePath}" fill="none" stroke="#ff3b30" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>` +
+    `<path d="${linePath}" fill="none" stroke="#a01818" stroke-width="1.75" stroke-linejoin="round"/>` +
     dots +
-    xLabels.join('');
+    xLabels.join('') +
+    `<text x="${padL - 55}" y="${padT + 5}" fill="#9a9a94" font-family="Source Sans 3, sans-serif" font-size="9" letter-spacing="1.5" text-transform="uppercase">VIEWS</text>` +
+    `<text x="${W / 2}" y="${H - 5}" text-anchor="middle" fill="#9a9a94" font-family="Source Sans 3, sans-serif" font-size="9" letter-spacing="1.5">READING NUMBER</text>`;
 }
 </script>
 </body>
