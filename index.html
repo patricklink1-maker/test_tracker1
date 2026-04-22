@@ -1,86 +1,433 @@
 <!doctype html>
-<html>
+<html lang="en">
 <head>
 <meta charset="utf-8">
-<title>YouTube View Tracker — All-Star Superman - Clark's interview with Lex Luthor 🤓 | DC</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>View Tracker — All-Star Superman - Clark's interview with Lex Luthor 🤓 | DC</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500;600&family=IBM+Plex+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
-  body { font-family: -apple-system, system-ui, sans-serif; margin: 2rem; max-width: 900px; color: #222; }
-  h1 { margin-bottom: 0.25rem; }
-  p { line-height: 1.5; }
-  table { border-collapse: collapse; width: 100%; font-size: 0.9rem; margin-top: 1rem; }
-  th, td { border: 1px solid #ddd; padding: 0.4rem 0.6rem; text-align: left; }
-  th { background: #f3f3f3; }
-  tr:nth-child(even) { background: #fafafa; }
-  .num { text-align: right; font-variant-numeric: tabular-nums; }
-  .chart { margin: 1.5rem 0; border: 1px solid #ddd; padding: 0.5rem; }
-  .controls a { display: inline-block; padding: 0.4rem 0.8rem; border: 1px solid #888;
-                 background: #fff; text-decoration: none; color: #000; border-radius: 3px;
-                 margin-right: 0.5rem; }
-  .footer { margin-top: 2rem; color: #888; font-size: 0.85rem; }
+  :root {
+    --bg: #0a0a0b;
+    --bg-elev: #111113;
+    --bg-card: #141418;
+    --border: #1f1f24;
+    --border-hover: #2a2a30;
+    --text: #e8e8ea;
+    --text-dim: #8a8a92;
+    --text-faint: #5a5a62;
+    --accent: #ff3b30;
+    --accent-glow: rgba(255, 59, 48, 0.15);
+    --accent-soft: rgba(255, 59, 48, 0.08);
+    --positive: #4ade80;
+    --negative: #ff3b30;
+  }
+
+  * { box-sizing: border-box; }
+
+  html, body {
+    margin: 0;
+    padding: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'IBM Plex Sans', -apple-system, sans-serif;
+    font-weight: 400;
+    -webkit-font-smoothing: antialiased;
+    min-height: 100vh;
+  }
+
+  body {
+    background:
+      radial-gradient(ellipse 80% 50% at 50% -10%, var(--accent-soft), transparent),
+      radial-gradient(ellipse 60% 40% at 80% 100%, rgba(255,59,48,0.03), transparent),
+      var(--bg);
+    background-attachment: fixed;
+  }
+
+  .container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 3rem 2rem 4rem;
+  }
+
+  /* Header */
+  .header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 1.25rem;
+    margin-bottom: 2rem;
+    flex-wrap: wrap;
+    gap: 1rem;
+  }
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+  .brand-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--accent);
+    box-shadow: 0 0 12px var(--accent);
+    animation: pulse 2s ease-in-out infinite;
+  }
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.4; }
+  }
+  .brand-label {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.75rem;
+    font-weight: 500;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+  }
+  .header-meta {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.7rem;
+    color: var(--text-faint);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+
+  /* Title block */
+  .title-block {
+    margin-bottom: 3rem;
+  }
+  .eyebrow {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.7rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 0.75rem;
+  }
+  h1.video-title {
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: clamp(1.5rem, 4vw, 2.25rem);
+    font-weight: 600;
+    margin: 0;
+    letter-spacing: -0.02em;
+    line-height: 1.15;
+  }
+
+  /* Stats grid */
+  .stats {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr 1fr;
+    gap: 1px;
+    background: var(--border);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    overflow: hidden;
+    margin-bottom: 2.5rem;
+  }
+  @media (max-width: 780px) {
+    .stats { grid-template-columns: 1fr 1fr; }
+  }
+  .stat {
+    background: var(--bg-card);
+    padding: 1.5rem 1.5rem;
+    position: relative;
+  }
+  .stat.hero {
+    background: linear-gradient(135deg, var(--bg-card), var(--bg-elev));
+  }
+  .stat-label {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.65rem;
+    font-weight: 500;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--text-faint);
+    margin-bottom: 0.75rem;
+  }
+  .stat-value {
+    font-family: 'IBM Plex Mono', monospace;
+    font-weight: 500;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -0.02em;
+    line-height: 1;
+    color: var(--text);
+  }
+  .stat.hero .stat-value {
+    font-size: clamp(2.5rem, 6vw, 3.75rem);
+    color: var(--accent);
+  }
+  .stat:not(.hero) .stat-value {
+    font-size: 1.5rem;
+  }
+  .stat-sub {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.7rem;
+    color: var(--text-dim);
+    margin-top: 0.5rem;
+    letter-spacing: 0.05em;
+  }
+
+  /* Chart */
+  .chart-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 1.5rem 1.5rem 1rem;
+    margin-bottom: 2.5rem;
+  }
+  .chart-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+  }
+  .chart-title {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.7rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+  }
+  .chart-actions a {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.7rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    text-decoration: none;
+    padding: 0.4rem 0.75rem;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    margin-left: 0.5rem;
+    transition: all 0.15s ease;
+  }
+  .chart-actions a:hover {
+    color: var(--accent);
+    border-color: var(--accent);
+    background: var(--accent-soft);
+  }
+  svg#chart { display: block; width: 100%; height: 320px; }
+
+  /* Table */
+  .table-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    overflow: hidden;
+  }
+  .table-head {
+    padding: 1.25rem 1.5rem;
+    border-bottom: 1px solid var(--border);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.7rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.85rem;
+  }
+  th {
+    text-align: left;
+    padding: 0.75rem 1.5rem;
+    font-weight: 500;
+    font-size: 0.7rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-faint);
+    border-bottom: 1px solid var(--border);
+    background: var(--bg-elev);
+  }
+  td {
+    padding: 0.9rem 1.5rem;
+    border-bottom: 1px solid var(--border);
+    color: var(--text);
+    font-variant-numeric: tabular-nums;
+  }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: var(--bg-elev); }
+  .idx { color: var(--text-faint); width: 3rem; }
+  .num { text-align: right; }
+  .num.delta { color: var(--positive); }
+  .tstack { display: flex; flex-direction: column; gap: 0.1rem; }
+  .tdate { color: var(--text); }
+  .ttime { color: var(--text-faint); font-size: 0.75rem; }
+  .empty { text-align: center; color: var(--text-faint); padding: 2.5rem; font-style: italic; }
+
+  /* Footer */
+  .footer {
+    margin-top: 3rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.7rem;
+    color: var(--text-faint);
+    letter-spacing: 0.05em;
+  }
 </style>
 </head>
 <body>
-<h1>YouTube View Tracker</h1>
-<p><strong>Video:</strong> All-Star Superman - Clark's interview with Lex Luthor 🤓 | DC<br><strong>Latest view count:</strong> 3,574<br><strong>Latest reading:</strong> 2026-04-22T15:37:36+00:00 UTC<br><strong>Readings so far:</strong> 1<br><strong>Tracking since:</strong> 2026-04-22T15:37:36+00:00 UTC</p>
+<div class="container">
 
-<div class="controls">
-  <a href="view_counts.csv" download>Download CSV</a>
-  <a href=".">Refresh</a>
+  <div class="header">
+    <div class="brand">
+      <div class="brand-dot"></div>
+      <span class="brand-label">Live Tracker</span>
+    </div>
+    <div class="header-meta">
+      2 readings · 0.2h elapsed
+    </div>
+  </div>
+
+  <div class="title-block">
+    <div class="eyebrow">Tracked Asset</div>
+    <h1 class="video-title">All-Star Superman - Clark's interview with Lex Luthor 🤓 | DC</h1>
+  </div>
+
+  <div class="stats">
+    <div class="stat hero">
+      <div class="stat-label">Current Views</div>
+      <div class="stat-value">3,578</div>
+      <div class="stat-sub">Last reading · 2026-04-22 15:51 UTC</div>
+    </div>
+    <div class="stat">
+      <div class="stat-label">Last Hour Δ</div>
+      <div class="stat-value">+17</div>
+      <div class="stat-sub">views / hour</div>
+    </div>
+    <div class="stat">
+      <div class="stat-label">Avg Rate</div>
+      <div class="stat-value">+17</div>
+      <div class="stat-sub">views / hour since launch</div>
+    </div>
+    <div class="stat">
+      <div class="stat-label">Peak Rate</div>
+      <div class="stat-value">17</div>
+      <div class="stat-sub">highest hourly velocity</div>
+    </div>
+  </div>
+
+  <div class="chart-card">
+    <div class="chart-head">
+      <div class="chart-title">Cumulative Views</div>
+      <div class="chart-actions">
+        <a href="view_counts.csv" download>Download CSV</a>
+        <a href=".">Refresh</a>
+      </div>
+    </div>
+    <svg id="chart" viewBox="0 0 1100 320" preserveAspectRatio="none"></svg>
+  </div>
+
+  <div class="table-card">
+    <div class="table-head">Reading Log</div>
+    <table>
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Timestamp</th>
+          <th class="num">Views</th>
+          <th class="num">Δ</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td class="idx">01</td><td><div class="tstack"><span class="tdate">Apr 22</span><span class="ttime">15:37 UTC</span></div></td><td class="num">3,574</td><td class="num delta">—</td></tr>
+<tr><td class="idx">02</td><td><div class="tstack"><span class="tdate">Apr 22</span><span class="ttime">15:51 UTC</span></div></td><td class="num">3,578</td><td class="num delta">+4</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="footer">
+    <span>Auto-updated hourly via GitHub Actions + YouTube Data API</span>
+    <span>Tracking since 2026-04-22 15:37 UTC</span>
+  </div>
+
 </div>
-
-<div class="chart">
-  <svg id="chart" width="100%" height="280" viewBox="0 0 900 280" preserveAspectRatio="none"></svg>
-</div>
-
-<table>
-  <thead>
-    <tr>
-      <th>#</th>
-      <th>Timestamp (UTC)</th>
-      <th class="num">View count</th>
-      <th class="num">Delta</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr><td>1</td><td>2026-04-22T15:37:36+00:00</td><td class='num'>3,574</td><td class='num'>—</td></tr>
-  </tbody>
-</table>
-
-<p class="footer">
-  Auto-updated hourly by GitHub Actions via the YouTube Data API.
-</p>
 
 <script>
-const points = [{"i": 0, "v": 3574, "t": "2026-04-22T15:37:36+00:00"}];
+const points = [{"i": 0, "v": 3574, "t": "2026-04-22T15:37:36+00:00"}, {"i": 1, "v": 3578, "t": "2026-04-22T15:51:31+00:00"}];
 const svg = document.getElementById('chart');
+
 if (points.length < 2) {
-  svg.innerHTML = '<text x="20" y="30" fill="#999">Need at least 2 readings to plot.</text>';
+  svg.innerHTML = '<text x="50%" y="50%" text-anchor="middle" fill="#5a5a62" font-family="IBM Plex Mono, monospace" font-size="12" letter-spacing="2">AWAITING SECOND READING</text>';
 } else {
-  const W = 900, H = 280, pad = 50;
+  const W = 1100, H = 320, padL = 70, padR = 20, padT = 20, padB = 40;
   const maxI = Math.max(...points.map(p => p.i));
   const maxV = Math.max(...points.map(p => p.v));
   const minV = Math.min(...points.map(p => p.v));
   const range = Math.max(1, maxV - minV);
-  const xScale = i => pad + (i / Math.max(1, maxI)) * (W - 2 * pad);
-  const yScale = v => (H - pad) - ((v - minV) / range) * (H - 2 * pad);
+  const padY = range * 0.1;
+  const yMin = Math.max(0, minV - padY);
+  const yMax = maxV + padY;
+  const yRange = Math.max(1, yMax - yMin);
 
-  let path = '';
+  const xScale = i => padL + (i / Math.max(1, maxI)) * (W - padL - padR);
+  const yScale = v => (H - padB) - ((v - yMin) / yRange) * (H - padT - padB);
+
+  // Grid lines
+  const gridLines = [];
+  const gridCount = 4;
+  for (let g = 0; g <= gridCount; g++) {
+    const y = padT + (g / gridCount) * (H - padT - padB);
+    const val = Math.round(yMax - (g / gridCount) * yRange);
+    gridLines.push(
+      `<line x1="${padL}" y1="${y}" x2="${W - padR}" y2="${y}" stroke="#1f1f24" stroke-width="1"/>` +
+      `<text x="${padL - 12}" y="${y + 4}" text-anchor="end" fill="#5a5a62" font-family="IBM Plex Mono, monospace" font-size="10">${val.toLocaleString()}</text>`
+    );
+  }
+
+  // X-axis labels
+  const xLabels = [];
+  const xLabelCount = Math.min(points.length, 6);
+  for (let xi = 0; xi < xLabelCount; xi++) {
+    const idx = Math.round((xi / Math.max(1, xLabelCount - 1)) * maxI);
+    const p = points[idx];
+    if (!p) continue;
+    const x = xScale(p.i);
+    const label = 'r' + String(p.i + 1).padStart(2, '0');
+    xLabels.push(
+      `<text x="${x}" y="${H - padB + 20}" text-anchor="middle" fill="#5a5a62" font-family="IBM Plex Mono, monospace" font-size="10">${label}</text>`
+    );
+  }
+
+  // Area under line
+  let areaPath = 'M' + xScale(points[0].i) + ' ' + (H - padB) + ' ';
+  points.forEach(p => { areaPath += 'L' + xScale(p.i) + ' ' + yScale(p.v) + ' '; });
+  areaPath += 'L' + xScale(points[points.length - 1].i) + ' ' + (H - padB) + ' Z';
+
+  // Line
+  let linePath = '';
   points.forEach((p, idx) => {
-    path += (idx === 0 ? 'M' : 'L') + xScale(p.i) + ' ' + yScale(p.v) + ' ';
+    linePath += (idx === 0 ? 'M' : 'L') + xScale(p.i) + ' ' + yScale(p.v) + ' ';
   });
+
+  // Dots
   const dots = points.map(p =>
-    '<circle cx="' + xScale(p.i) + '" cy="' + yScale(p.v) + '" r="3" fill="#c00">' +
-    '<title>' + p.t + ' — ' + p.v.toLocaleString() + ' views</title></circle>'
+    `<circle cx="${xScale(p.i)}" cy="${yScale(p.v)}" r="3.5" fill="#0a0a0b" stroke="#ff3b30" stroke-width="2">` +
+    `<title>${p.t} — ${p.v.toLocaleString()} views</title></circle>`
   ).join('');
 
   svg.innerHTML =
-    '<line x1="' + pad + '" y1="' + (H - pad) + '" x2="' + (W - pad) + '" y2="' + (H - pad) + '" stroke="#888"/>' +
-    '<line x1="' + pad + '" y1="' + pad + '" x2="' + pad + '" y2="' + (H - pad) + '" stroke="#888"/>' +
-    '<text x="' + pad + '" y="' + (pad - 10) + '" font-size="11" fill="#666">' + maxV.toLocaleString() + ' views</text>' +
-    '<text x="' + pad + '" y="' + (H - pad + 20) + '" font-size="11" fill="#666">reading 1</text>' +
-    '<text x="' + (W - pad - 70) + '" y="' + (H - pad + 20) + '" font-size="11" fill="#666">reading ' + points.length + '</text>' +
-    '<path d="' + path + '" fill="none" stroke="#c00" stroke-width="2"/>' +
-    dots;
+    `<defs>
+      <linearGradient id="areaGrad" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="#ff3b30" stop-opacity="0.25"/>
+        <stop offset="100%" stop-color="#ff3b30" stop-opacity="0"/>
+      </linearGradient>
+    </defs>` +
+    gridLines.join('') +
+    `<path d="${areaPath}" fill="url(#areaGrad)"/>` +
+    `<path d="${linePath}" fill="none" stroke="#ff3b30" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>` +
+    dots +
+    xLabels.join('');
 }
 </script>
 </body>
