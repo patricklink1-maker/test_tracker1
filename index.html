@@ -2,7 +2,7 @@
 <html>
 <head>
 <meta charset="utf-8">
-<title>YouTube View Tracker — ERROR: Could not find viewCount in page HTML</title>
+<title>YouTube View Tracker — ERROR: Could not find view count. First 400 chars: '<!DOCTYPE html><html style="font-size: 10px;font-family: Roboto, Arial, sans-serif;" lang="en" darker-dark-theme darker-dark-theme-deprecate system-icons color-version="v2_0" typography typography-spacing><head><script data-id="_gd" nonce="b6RYqalCU3ZAWFRVDBkJnA">window.WIZ_global_data = {"AfY8Hf":false,"FL1an":false,"HiPsbb":0,"MUE6Ne":"youtube_web","MuJWjd":false,"UUFaWc":"%.@.null,1000,2]","cfb'</title>
 <style>
   body { font-family: -apple-system, system-ui, sans-serif; margin: 2rem; max-width: 900px; color: #222; }
   h1 { margin-bottom: 0.25rem; }
@@ -21,7 +21,7 @@
 </head>
 <body>
 <h1>YouTube View Tracker</h1>
-<p><strong>Video:</strong> ERROR: Could not find viewCount in page HTML<br><strong>Latest view count:</strong> —<br><strong>Latest reading:</strong> 2026-04-22T15:06:51+00:00 UTC<br><strong>Readings so far:</strong> 7<br><strong>Tracking since:</strong> 2026-04-22T09:40:46+00:00 UTC</p>
+<p><strong>Video:</strong> ERROR: Could not find view count. First 400 chars: '<!DOCTYPE html><html style="font-size: 10px;font-family: Roboto, Arial, sans-serif;" lang="en" darker-dark-theme darker-dark-theme-deprecate system-icons color-version="v2_0" typography typography-spacing><head><script data-id="_gd" nonce="b6RYqalCU3ZAWFRVDBkJnA">window.WIZ_global_data = {"AfY8Hf":false,"FL1an":false,"HiPsbb":0,"MUE6Ne":"youtube_web","MuJWjd":false,"UUFaWc":"%.@.null,1000,2]","cfb'<br><strong>Latest view count:</strong> —<br><strong>Latest reading:</strong> 2026-04-22T15:19:01+00:00 UTC<br><strong>Readings so far:</strong> 1<br><strong>Tracking since:</strong> 2026-04-22T15:19:01+00:00 UTC</p>
 
 <div class="controls">
   <a href="view_counts.csv" download>Download CSV</a>
@@ -42,13 +42,7 @@
     </tr>
   </thead>
   <tbody>
-    <tr><td>1</td><td>2026-04-22T09:40:46+00:00</td><td class='num'>12,000</td><td class='num'>—</td></tr>
-<tr><td>2</td><td>2026-04-22T10:40:46+00:00</td><td class='num'>45,000</td><td class='num'>33,000</td></tr>
-<tr><td>3</td><td>2026-04-22T11:40:46+00:00</td><td class='num'>98,000</td><td class='num'>53,000</td></tr>
-<tr><td>4</td><td>2026-04-22T12:40:46+00:00</td><td class='num'>175,000</td><td class='num'>77,000</td></tr>
-<tr><td>5</td><td>2026-04-22T13:40:46+00:00</td><td class='num'>260,000</td><td class='num'>85,000</td></tr>
-<tr><td>6</td><td>2026-04-22T14:40:46+00:00</td><td class='num'>340,000</td><td class='num'>80,000</td></tr>
-<tr><td>7</td><td>2026-04-22T15:06:51+00:00</td><td class='num'>—</td><td class='num'>—</td></tr>
+    <tr><td>1</td><td>2026-04-22T15:19:01+00:00</td><td class='num'>—</td><td class='num'>—</td></tr>
   </tbody>
 </table>
 
@@ -59,7 +53,7 @@
 </p>
 
 <script>
-const points = [{"i": 0, "v": 12000, "t": "2026-04-22T09:40:46+00:00"}, {"i": 1, "v": 45000, "t": "2026-04-22T10:40:46+00:00"}, {"i": 2, "v": 98000, "t": "2026-04-22T11:40:46+00:00"}, {"i": 3, "v": 175000, "t": "2026-04-22T12:40:46+00:00"}, {"i": 4, "v": 260000, "t": "2026-04-22T13:40:46+00:00"}, {"i": 5, "v": 340000, "t": "2026-04-22T14:40:46+00:00"}];
+const points = [];
 const svg = document.getElementById('chart');
 if (points.length < 2) {
   svg.innerHTML = '<text x="20" y="30" fill="#999">Need at least 2 readings to plot.</text>';
