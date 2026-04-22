@@ -2,8 +2,8 @@ name: Hourly view tracker
 
 on:
   schedule:
-    # Every 30 minutes at :07 and :37 (off-peak times are more reliable)
-    - cron: '7,37 * * * *'
+    # Every hour
+    - cron: '0 * * * *'
   workflow_dispatch:
 
 permissions:
