@@ -13,7 +13,7 @@ from urllib.parse import urlparse, parse_qs
 import requests
 
 # -------- CONFIG --------
-VIDEO_URL = "https://www.youtube.com/watch?v=ZIfpL3mgkFk"
+VIDEO_URL = "https://www.youtube.com/watch?v=6IxPD-jNdwM"
 CURRENT_TITLE = "Clayface (2026)"
 OUTPUT_CSV = "view_counts.csv"
 OUTPUT_HTML = "index.html"
