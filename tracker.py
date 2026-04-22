@@ -7,7 +7,6 @@ to view_counts.csv. Also regenerates index.html.
 import csv
 import json as _json
 import os
-import re
 from datetime import datetime, timezone
 from urllib.parse import urlparse, parse_qs
 
@@ -71,137 +70,541 @@ def read_rows(path: str) -> list:
         return list(csv.DictReader(f))
 
 
-def build_html(rows: list) -> str:
-    if not rows:
-        body_meta = "<p><em>No readings yet.</em></p>"
-        table_rows = ""
-        chart_data_json = "[]"
-        video_title = ""
-    else:
-        latest = rows[-1]
-        first = rows[0]
-        video_title = latest.get("title", "")
+def compute_derived(rows: list) -> dict:
+    """Compute hero stats: latest, delta, avg views/hr, peak hr."""
+    valid = []
+    for r in rows:
         try:
-            latest_views_str = f"{int(latest['view_count']):,}"
+            valid.append({
+                "v": int(r["view_count"]),
+                "t": datetime.fromisoformat(r["timestamp_utc"]),
+            })
         except (ValueError, KeyError):
-            latest_views_str = "—"
+            continue
 
-        body_meta = (
-            f"<p><strong>Video:</strong> {video_title}<br>"
-            f"<strong>Latest view count:</strong> {latest_views_str}<br>"
-            f"<strong>Latest reading:</strong> {latest['timestamp_utc']} UTC<br>"
-            f"<strong>Readings so far:</strong> {len(rows)}<br>"
-            f"<strong>Tracking since:</strong> {first['timestamp_utc']} UTC</p>"
+    stats = {
+        "latest": None,
+        "last_delta": None,
+        "avg_per_hour": None,
+        "peak_per_hour": None,
+        "hours_elapsed": None,
+    }
+    if not valid:
+        return stats
+
+    stats["latest"] = valid[-1]["v"]
+
+    if len(valid) >= 2:
+        prev = valid[-2]
+        curr = valid[-1]
+        elapsed_h = max((curr["t"] - prev["t"]).total_seconds() / 3600, 0.0001)
+        stats["last_delta"] = round((curr["v"] - prev["v"]) / elapsed_h)
+
+        first = valid[0]
+        total_h = max((curr["t"] - first["t"]).total_seconds() / 3600, 0.0001)
+        stats["avg_per_hour"] = round((curr["v"] - first["v"]) / total_h)
+        stats["hours_elapsed"] = round(total_h, 1)
+
+        peak = 0
+        for i in range(1, len(valid)):
+            h = max((valid[i]["t"] - valid[i-1]["t"]).total_seconds() / 3600, 0.0001)
+            rate = (valid[i]["v"] - valid[i-1]["v"]) / h
+            if rate > peak:
+                peak = rate
+        stats["peak_per_hour"] = round(peak)
+
+    return stats
+
+
+def fmt_num(n):
+    if n is None:
+        return "—"
+    return f"{n:,}"
+
+
+def fmt_signed(n):
+    if n is None:
+        return "—"
+    return f"{'+' if n >= 0 else ''}{n:,}"
+
+
+def build_html(rows: list) -> str:
+    derived = compute_derived(rows)
+    video_title = rows[-1].get("title", "") if rows else ""
+
+    # Build table rows
+    prev = None
+    trs = []
+    chart_points = []
+    for i, r in enumerate(rows, start=1):
+        try:
+            v = int(r["view_count"])
+            v_str = f"{v:,}"
+            delta_str = f"{'+' if (v - prev) >= 0 else ''}{v - prev:,}" if prev is not None else "—"
+            prev = v
+            chart_points.append({"i": i - 1, "v": v, "t": r["timestamp_utc"]})
+        except (ValueError, KeyError):
+            v_str = "—"
+            delta_str = "—"
+        ts = r.get("timestamp_utc", "")
+        # Nicely format timestamp as two lines: date + time
+        try:
+            dt = datetime.fromisoformat(ts)
+            date_str = dt.strftime("%b %d")
+            time_str = dt.strftime("%H:%M UTC")
+        except Exception:
+            date_str, time_str = ts, ""
+        trs.append(
+            f'<tr><td class="idx">{i:02d}</td>'
+            f'<td><div class="tstack"><span class="tdate">{date_str}</span><span class="ttime">{time_str}</span></div></td>'
+            f'<td class="num">{v_str}</td>'
+            f'<td class="num delta">{delta_str}</td></tr>'
         )
+    table_rows = "\n".join(trs) if trs else '<tr><td colspan="4" class="empty">No readings yet. First reading appears within the hour.</td></tr>'
+    chart_data_json = _json.dumps(chart_points)
 
-        prev = None
-        trs = []
-        for i, r in enumerate(rows, start=1):
-            try:
-                v = int(r["view_count"])
-                v_str = f"{v:,}"
-                delta_str = f"{v - prev:,}" if prev is not None else "—"
-                prev = v
-            except (ValueError, KeyError):
-                v_str = "—"
-                delta_str = "—"
-            trs.append(
-                f"<tr><td>{i}</td><td>{r['timestamp_utc']}</td>"
-                f"<td class='num'>{v_str}</td><td class='num'>{delta_str}</td></tr>"
-            )
-        table_rows = "\n".join(trs)
+    # Stats
+    latest_str = fmt_num(derived["latest"])
+    last_delta_str = fmt_signed(derived["last_delta"])
+    avg_str = fmt_signed(derived["avg_per_hour"])
+    peak_str = fmt_num(derived["peak_per_hour"])
+    hours_elapsed = derived["hours_elapsed"] if derived["hours_elapsed"] is not None else 0
+    readings_count = len(rows)
 
-        chart_points = []
-        for i, r in enumerate(rows):
-            try:
-                chart_points.append({"i": i, "v": int(r["view_count"]), "t": r["timestamp_utc"]})
-            except (ValueError, KeyError):
-                pass
-        chart_data_json = _json.dumps(chart_points)
+    latest_ts = rows[-1]["timestamp_utc"] if rows else ""
+    first_ts = rows[0]["timestamp_utc"] if rows else ""
+
+    title_display = video_title or "Awaiting first reading"
 
     return f"""<!doctype html>
-<html>
+<html lang="en">
 <head>
 <meta charset="utf-8">
-<title>YouTube View Tracker — {video_title or 'Clayface'}</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>View Tracker — {title_display}</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500;600&family=IBM+Plex+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
-  body {{ font-family: -apple-system, system-ui, sans-serif; margin: 2rem; max-width: 900px; color: #222; }}
-  h1 {{ margin-bottom: 0.25rem; }}
-  p {{ line-height: 1.5; }}
-  table {{ border-collapse: collapse; width: 100%; font-size: 0.9rem; margin-top: 1rem; }}
-  th, td {{ border: 1px solid #ddd; padding: 0.4rem 0.6rem; text-align: left; }}
-  th {{ background: #f3f3f3; }}
-  tr:nth-child(even) {{ background: #fafafa; }}
-  .num {{ text-align: right; font-variant-numeric: tabular-nums; }}
-  .chart {{ margin: 1.5rem 0; border: 1px solid #ddd; padding: 0.5rem; }}
-  .controls a {{ display: inline-block; padding: 0.4rem 0.8rem; border: 1px solid #888;
-                 background: #fff; text-decoration: none; color: #000; border-radius: 3px;
-                 margin-right: 0.5rem; }}
-  .footer {{ margin-top: 2rem; color: #888; font-size: 0.85rem; }}
+  :root {{
+    --bg: #0a0a0b;
+    --bg-elev: #111113;
+    --bg-card: #141418;
+    --border: #1f1f24;
+    --border-hover: #2a2a30;
+    --text: #e8e8ea;
+    --text-dim: #8a8a92;
+    --text-faint: #5a5a62;
+    --accent: #ff3b30;
+    --accent-glow: rgba(255, 59, 48, 0.15);
+    --accent-soft: rgba(255, 59, 48, 0.08);
+    --positive: #4ade80;
+    --negative: #ff3b30;
+  }}
+
+  * {{ box-sizing: border-box; }}
+
+  html, body {{
+    margin: 0;
+    padding: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'IBM Plex Sans', -apple-system, sans-serif;
+    font-weight: 400;
+    -webkit-font-smoothing: antialiased;
+    min-height: 100vh;
+  }}
+
+  body {{
+    background:
+      radial-gradient(ellipse 80% 50% at 50% -10%, var(--accent-soft), transparent),
+      radial-gradient(ellipse 60% 40% at 80% 100%, rgba(255,59,48,0.03), transparent),
+      var(--bg);
+    background-attachment: fixed;
+  }}
+
+  .container {{
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 3rem 2rem 4rem;
+  }}
+
+  /* Header */
+  .header {{
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 1.25rem;
+    margin-bottom: 2rem;
+    flex-wrap: wrap;
+    gap: 1rem;
+  }}
+  .brand {{
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }}
+  .brand-dot {{
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--accent);
+    box-shadow: 0 0 12px var(--accent);
+    animation: pulse 2s ease-in-out infinite;
+  }}
+  @keyframes pulse {{
+    0%, 100% {{ opacity: 1; }}
+    50% {{ opacity: 0.4; }}
+  }}
+  .brand-label {{
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.75rem;
+    font-weight: 500;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+  }}
+  .header-meta {{
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.7rem;
+    color: var(--text-faint);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }}
+
+  /* Title block */
+  .title-block {{
+    margin-bottom: 3rem;
+  }}
+  .eyebrow {{
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.7rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 0.75rem;
+  }}
+  h1.video-title {{
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: clamp(1.5rem, 4vw, 2.25rem);
+    font-weight: 600;
+    margin: 0;
+    letter-spacing: -0.02em;
+    line-height: 1.15;
+  }}
+
+  /* Stats grid */
+  .stats {{
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr 1fr;
+    gap: 1px;
+    background: var(--border);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    overflow: hidden;
+    margin-bottom: 2.5rem;
+  }}
+  @media (max-width: 780px) {{
+    .stats {{ grid-template-columns: 1fr 1fr; }}
+  }}
+  .stat {{
+    background: var(--bg-card);
+    padding: 1.5rem 1.5rem;
+    position: relative;
+  }}
+  .stat.hero {{
+    background: linear-gradient(135deg, var(--bg-card), var(--bg-elev));
+  }}
+  .stat-label {{
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.65rem;
+    font-weight: 500;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--text-faint);
+    margin-bottom: 0.75rem;
+  }}
+  .stat-value {{
+    font-family: 'IBM Plex Mono', monospace;
+    font-weight: 500;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -0.02em;
+    line-height: 1;
+    color: var(--text);
+  }}
+  .stat.hero .stat-value {{
+    font-size: clamp(2.5rem, 6vw, 3.75rem);
+    color: var(--accent);
+  }}
+  .stat:not(.hero) .stat-value {{
+    font-size: 1.5rem;
+  }}
+  .stat-sub {{
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.7rem;
+    color: var(--text-dim);
+    margin-top: 0.5rem;
+    letter-spacing: 0.05em;
+  }}
+
+  /* Chart */
+  .chart-card {{
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 1.5rem 1.5rem 1rem;
+    margin-bottom: 2.5rem;
+  }}
+  .chart-head {{
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+  }}
+  .chart-title {{
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.7rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+  }}
+  .chart-actions a {{
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.7rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    text-decoration: none;
+    padding: 0.4rem 0.75rem;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    margin-left: 0.5rem;
+    transition: all 0.15s ease;
+  }}
+  .chart-actions a:hover {{
+    color: var(--accent);
+    border-color: var(--accent);
+    background: var(--accent-soft);
+  }}
+  svg#chart {{ display: block; width: 100%; height: 320px; }}
+
+  /* Table */
+  .table-card {{
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    overflow: hidden;
+  }}
+  .table-head {{
+    padding: 1.25rem 1.5rem;
+    border-bottom: 1px solid var(--border);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.7rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+  }}
+  table {{
+    width: 100%;
+    border-collapse: collapse;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.85rem;
+  }}
+  th {{
+    text-align: left;
+    padding: 0.75rem 1.5rem;
+    font-weight: 500;
+    font-size: 0.7rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-faint);
+    border-bottom: 1px solid var(--border);
+    background: var(--bg-elev);
+  }}
+  td {{
+    padding: 0.9rem 1.5rem;
+    border-bottom: 1px solid var(--border);
+    color: var(--text);
+    font-variant-numeric: tabular-nums;
+  }}
+  tr:last-child td {{ border-bottom: none; }}
+  tr:hover td {{ background: var(--bg-elev); }}
+  .idx {{ color: var(--text-faint); width: 3rem; }}
+  .num {{ text-align: right; }}
+  .num.delta {{ color: var(--positive); }}
+  .tstack {{ display: flex; flex-direction: column; gap: 0.1rem; }}
+  .tdate {{ color: var(--text); }}
+  .ttime {{ color: var(--text-faint); font-size: 0.75rem; }}
+  .empty {{ text-align: center; color: var(--text-faint); padding: 2.5rem; font-style: italic; }}
+
+  /* Footer */
+  .footer {{
+    margin-top: 3rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.7rem;
+    color: var(--text-faint);
+    letter-spacing: 0.05em;
+  }}
 </style>
 </head>
 <body>
-<h1>YouTube View Tracker</h1>
-{body_meta}
+<div class="container">
 
-<div class="controls">
-  <a href="view_counts.csv" download>Download CSV</a>
-  <a href=".">Refresh</a>
+  <div class="header">
+    <div class="brand">
+      <div class="brand-dot"></div>
+      <span class="brand-label">Live Tracker</span>
+    </div>
+    <div class="header-meta">
+      {readings_count} readings · {hours_elapsed}h elapsed
+    </div>
+  </div>
+
+  <div class="title-block">
+    <div class="eyebrow">Tracked Asset</div>
+    <h1 class="video-title">{title_display}</h1>
+  </div>
+
+  <div class="stats">
+    <div class="stat hero">
+      <div class="stat-label">Current Views</div>
+      <div class="stat-value">{latest_str}</div>
+      <div class="stat-sub">Last reading · {latest_ts[:16].replace('T', ' ') if latest_ts else '—'} UTC</div>
+    </div>
+    <div class="stat">
+      <div class="stat-label">Last Hour Δ</div>
+      <div class="stat-value">{last_delta_str}</div>
+      <div class="stat-sub">views / hour</div>
+    </div>
+    <div class="stat">
+      <div class="stat-label">Avg Rate</div>
+      <div class="stat-value">{avg_str}</div>
+      <div class="stat-sub">views / hour since launch</div>
+    </div>
+    <div class="stat">
+      <div class="stat-label">Peak Rate</div>
+      <div class="stat-value">{peak_str}</div>
+      <div class="stat-sub">highest hourly velocity</div>
+    </div>
+  </div>
+
+  <div class="chart-card">
+    <div class="chart-head">
+      <div class="chart-title">Cumulative Views</div>
+      <div class="chart-actions">
+        <a href="view_counts.csv" download>Download CSV</a>
+        <a href=".">Refresh</a>
+      </div>
+    </div>
+    <svg id="chart" viewBox="0 0 1100 320" preserveAspectRatio="none"></svg>
+  </div>
+
+  <div class="table-card">
+    <div class="table-head">Reading Log</div>
+    <table>
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Timestamp</th>
+          <th class="num">Views</th>
+          <th class="num">Δ</th>
+        </tr>
+      </thead>
+      <tbody>
+        {table_rows}
+      </tbody>
+    </table>
+  </div>
+
+  <div class="footer">
+    <span>Auto-updated hourly via GitHub Actions + YouTube Data API</span>
+    <span>Tracking since {first_ts[:16].replace('T', ' ') if first_ts else '—'} UTC</span>
+  </div>
+
 </div>
-
-<div class="chart">
-  <svg id="chart" width="100%" height="280" viewBox="0 0 900 280" preserveAspectRatio="none"></svg>
-</div>
-
-<table>
-  <thead>
-    <tr>
-      <th>#</th>
-      <th>Timestamp (UTC)</th>
-      <th class="num">View count</th>
-      <th class="num">Delta</th>
-    </tr>
-  </thead>
-  <tbody>
-    {table_rows}
-  </tbody>
-</table>
-
-<p class="footer">
-  Auto-updated hourly by GitHub Actions via the YouTube Data API.
-</p>
 
 <script>
 const points = {chart_data_json};
 const svg = document.getElementById('chart');
+
 if (points.length < 2) {{
-  svg.innerHTML = '<text x="20" y="30" fill="#999">Need at least 2 readings to plot.</text>';
+  svg.innerHTML = '<text x="50%" y="50%" text-anchor="middle" fill="#5a5a62" font-family="IBM Plex Mono, monospace" font-size="12" letter-spacing="2">AWAITING SECOND READING</text>';
 }} else {{
-  const W = 900, H = 280, pad = 50;
+  const W = 1100, H = 320, padL = 70, padR = 20, padT = 20, padB = 40;
   const maxI = Math.max(...points.map(p => p.i));
   const maxV = Math.max(...points.map(p => p.v));
   const minV = Math.min(...points.map(p => p.v));
   const range = Math.max(1, maxV - minV);
-  const xScale = i => pad + (i / Math.max(1, maxI)) * (W - 2 * pad);
-  const yScale = v => (H - pad) - ((v - minV) / range) * (H - 2 * pad);
+  const padY = range * 0.1;
+  const yMin = Math.max(0, minV - padY);
+  const yMax = maxV + padY;
+  const yRange = Math.max(1, yMax - yMin);
 
-  let path = '';
+  const xScale = i => padL + (i / Math.max(1, maxI)) * (W - padL - padR);
+  const yScale = v => (H - padB) - ((v - yMin) / yRange) * (H - padT - padB);
+
+  // Grid lines
+  const gridLines = [];
+  const gridCount = 4;
+  for (let g = 0; g <= gridCount; g++) {{
+    const y = padT + (g / gridCount) * (H - padT - padB);
+    const val = Math.round(yMax - (g / gridCount) * yRange);
+    gridLines.push(
+      `<line x1="${{padL}}" y1="${{y}}" x2="${{W - padR}}" y2="${{y}}" stroke="#1f1f24" stroke-width="1"/>` +
+      `<text x="${{padL - 12}}" y="${{y + 4}}" text-anchor="end" fill="#5a5a62" font-family="IBM Plex Mono, monospace" font-size="10">${{val.toLocaleString()}}</text>`
+    );
+  }}
+
+  // X-axis labels
+  const xLabels = [];
+  const xLabelCount = Math.min(points.length, 6);
+  for (let xi = 0; xi < xLabelCount; xi++) {{
+    const idx = Math.round((xi / Math.max(1, xLabelCount - 1)) * maxI);
+    const p = points[idx];
+    if (!p) continue;
+    const x = xScale(p.i);
+    const label = 'r' + String(p.i + 1).padStart(2, '0');
+    xLabels.push(
+      `<text x="${{x}}" y="${{H - padB + 20}}" text-anchor="middle" fill="#5a5a62" font-family="IBM Plex Mono, monospace" font-size="10">${{label}}</text>`
+    );
+  }}
+
+  // Area under line
+  let areaPath = 'M' + xScale(points[0].i) + ' ' + (H - padB) + ' ';
+  points.forEach(p => {{ areaPath += 'L' + xScale(p.i) + ' ' + yScale(p.v) + ' '; }});
+  areaPath += 'L' + xScale(points[points.length - 1].i) + ' ' + (H - padB) + ' Z';
+
+  // Line
+  let linePath = '';
   points.forEach((p, idx) => {{
-    path += (idx === 0 ? 'M' : 'L') + xScale(p.i) + ' ' + yScale(p.v) + ' ';
+    linePath += (idx === 0 ? 'M' : 'L') + xScale(p.i) + ' ' + yScale(p.v) + ' ';
   }});
+
+  // Dots
   const dots = points.map(p =>
-    '<circle cx="' + xScale(p.i) + '" cy="' + yScale(p.v) + '" r="3" fill="#c00">' +
-    '<title>' + p.t + ' — ' + p.v.toLocaleString() + ' views</title></circle>'
+    `<circle cx="${{xScale(p.i)}}" cy="${{yScale(p.v)}}" r="3.5" fill="#0a0a0b" stroke="#ff3b30" stroke-width="2">` +
+    `<title>${{p.t}} — ${{p.v.toLocaleString()}} views</title></circle>`
   ).join('');
 
   svg.innerHTML =
-    '<line x1="' + pad + '" y1="' + (H - pad) + '" x2="' + (W - pad) + '" y2="' + (H - pad) + '" stroke="#888"/>' +
-    '<line x1="' + pad + '" y1="' + pad + '" x2="' + pad + '" y2="' + (H - pad) + '" stroke="#888"/>' +
-    '<text x="' + pad + '" y="' + (pad - 10) + '" font-size="11" fill="#666">' + maxV.toLocaleString() + ' views</text>' +
-    '<text x="' + pad + '" y="' + (H - pad + 20) + '" font-size="11" fill="#666">reading 1</text>' +
-    '<text x="' + (W - pad - 70) + '" y="' + (H - pad + 20) + '" font-size="11" fill="#666">reading ' + points.length + '</text>' +
-    '<path d="' + path + '" fill="none" stroke="#c00" stroke-width="2"/>' +
-    dots;
+    `<defs>
+      <linearGradient id="areaGrad" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="#ff3b30" stop-opacity="0.25"/>
+        <stop offset="100%" stop-color="#ff3b30" stop-opacity="0"/>
+      </linearGradient>
+    </defs>` +
+    gridLines.join('') +
+    `<path d="${{areaPath}}" fill="url(#areaGrad)"/>` +
+    `<path d="${{linePath}}" fill="none" stroke="#ff3b30" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>` +
+    dots +
+    xLabels.join('');
 }}
 </script>
 </body>
