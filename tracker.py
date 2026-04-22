@@ -100,7 +100,7 @@ def compute_derived(rows: list) -> dict:
     stats = {
         "latest_views": None, "latest_likes": None, "latest_comments": None,
         "last_delta": None, "avg_per_hour": None, "peak_per_hour": None,
-        "hours_elapsed": None,
+        "hours_elapsed": None, "h_plus": None,
     }
     if not valid:
         return stats
@@ -109,6 +109,12 @@ def compute_derived(rows: list) -> dict:
     stats["latest_views"] = latest["v"]
     stats["latest_likes"] = latest["l"]
     stats["latest_comments"] = latest["c"]
+
+    if len(valid) >= 1:
+        first = valid[0]
+        now = datetime.now(timezone.utc)
+        h_plus = max((now - first["t"]).total_seconds() / 3600, 0)
+        stats["h_plus"] = int(h_plus)
 
     if len(valid) >= 2:
         prev = valid[-2]
@@ -188,7 +194,12 @@ def build_html(rows: list) -> str:
     avg_str = fmt_signed(derived["avg_per_hour"])
     peak_str = fmt_num(derived["peak_per_hour"])
     hours_elapsed = derived["hours_elapsed"] if derived["hours_elapsed"] is not None else 0
+    h_plus = derived["h_plus"] if derived["h_plus"] is not None else 0
     readings_count = len(rows)
+
+    # Minutes until next top-of-hour reading
+    now_min = datetime.now(timezone.utc).minute
+    next_reading_min = 60 - now_min if now_min > 0 else 60
 
     latest_ts = rows[-1]["timestamp_utc"] if rows else ""
     first_ts = rows[0]["timestamp_utc"] if rows else ""
@@ -201,7 +212,7 @@ def build_html(rows: list) -> str:
 <title>Velocity72 — {CURRENT_TITLE}</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500;600&family=IBM+Plex+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500;600&family=Manrope:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
   :root {{
     --bg: #07090c;
@@ -212,9 +223,12 @@ def build_html(rows: list) -> str:
     --text: #e8edf2;
     --text-dim: #8a95a5;
     --text-faint: #5a6676;
-    --accent: #22d3ee;
-    --accent-2: #14b8a6;
-    --accent-glow: rgba(34, 211, 238, 0.18);
+    --cyan: #22d3ee;
+    --teal: #14b8a6;
+    --amber: #fbbf24;
+    --orange: #f97316;
+    --violet: #a78bfa;
+    --pink: #ec4899;
     --accent-soft: rgba(34, 211, 238, 0.08);
     --positive: #4ade80;
   }}
@@ -226,7 +240,7 @@ def build_html(rows: list) -> str:
     padding: 0;
     background: var(--bg);
     color: var(--text);
-    font-family: 'IBM Plex Sans', -apple-system, sans-serif;
+    font-family: 'Manrope', -apple-system, sans-serif;
     font-weight: 400;
     -webkit-font-smoothing: antialiased;
     min-height: 100vh;
@@ -250,12 +264,12 @@ def build_html(rows: list) -> str:
   .header {{
     display: flex;
     justify-content: space-between;
-    align-items: flex-end;
+    align-items: center;
     border-bottom: 1px solid var(--border);
-    padding-bottom: 1.25rem;
+    padding-bottom: 1.5rem;
     margin-bottom: 2rem;
     flex-wrap: wrap;
-    gap: 1rem;
+    gap: 1.5rem;
   }}
   .brand {{
     display: flex;
@@ -266,8 +280,8 @@ def build_html(rows: list) -> str:
     width: 8px;
     height: 8px;
     border-radius: 50%;
-    background: var(--accent);
-    box-shadow: 0 0 14px var(--accent);
+    background: var(--cyan);
+    box-shadow: 0 0 14px var(--cyan);
     animation: pulse 2s ease-in-out infinite;
   }}
   @keyframes pulse {{
@@ -278,41 +292,79 @@ def build_html(rows: list) -> str:
     font-family: 'IBM Plex Mono', monospace;
     font-size: 0.75rem;
     font-weight: 500;
-    letter-spacing: 0.15em;
+    letter-spacing: 0.2em;
     text-transform: uppercase;
     color: var(--text-dim);
   }}
+  .header-cluster {{
+    display: flex;
+    align-items: center;
+    gap: 2rem;
+  }}
+  .h-plus {{
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    line-height: 1;
+  }}
+  .h-plus-value {{
+    font-family: 'Manrope', sans-serif;
+    font-weight: 800;
+    font-size: 2rem;
+    letter-spacing: -0.03em;
+    line-height: 1;
+    background: linear-gradient(90deg, var(--cyan), var(--teal));
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    font-variant-numeric: tabular-nums;
+  }}
+  .h-plus-label {{
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.6rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--text-faint);
+    margin-top: 0.25rem;
+  }}
   .header-meta {{
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+    align-items: flex-end;
+  }}
+  .header-meta-row {{
     font-family: 'IBM Plex Mono', monospace;
     font-size: 0.7rem;
     color: var(--text-faint);
     letter-spacing: 0.1em;
     text-transform: uppercase;
   }}
+  .header-meta-row strong {{ color: var(--text-dim); font-weight: 500; }}
 
   /* Title block */
   .title-block {{
     margin-bottom: 2rem;
   }}
   h1.product-title {{
-    font-family: 'IBM Plex Sans', sans-serif;
-    font-size: clamp(2rem, 5vw, 3rem);
-    font-weight: 700;
+    font-family: 'Manrope', sans-serif;
+    font-size: clamp(2.25rem, 5.5vw, 3.5rem);
+    font-weight: 800;
     margin: 0 0 0.4rem 0;
-    letter-spacing: -0.03em;
-    line-height: 1.05;
-    background: linear-gradient(90deg, var(--accent) 0%, var(--accent-2) 100%);
+    letter-spacing: -0.04em;
+    line-height: 1;
+    background: linear-gradient(90deg, var(--cyan) 0%, var(--teal) 100%);
     -webkit-background-clip: text;
     background-clip: text;
     -webkit-text-fill-color: transparent;
   }}
   .product-subtitle {{
-    font-family: 'IBM Plex Sans', sans-serif;
+    font-family: 'Manrope', sans-serif;
     font-size: clamp(0.95rem, 1.6vw, 1.1rem);
     color: var(--text-dim);
     font-weight: 400;
     margin: 0 0 1.75rem 0;
-    letter-spacing: -0.005em;
+    letter-spacing: -0.01em;
   }}
   .current-title-row {{
     display: inline-flex;
@@ -331,7 +383,7 @@ def build_html(rows: list) -> str:
     color: var(--text-faint);
   }}
   .current-title-value {{
-    font-family: 'IBM Plex Sans', sans-serif;
+    font-family: 'Manrope', sans-serif;
     font-size: 1rem;
     font-weight: 600;
     color: var(--text);
@@ -345,9 +397,9 @@ def build_html(rows: list) -> str:
     gap: 1px;
     background: var(--border);
     border: 1px solid var(--border);
-    border-radius: 6px;
     overflow: hidden;
-    margin: 2.5rem 0 1px;
+    margin: 2.5rem 0 0;
+    border-radius: 6px 6px 0 0;
   }}
   .stats.secondary {{
     grid-template-columns: 1fr 1fr 1fr;
@@ -356,7 +408,6 @@ def build_html(rows: list) -> str:
     border-top: none;
     border-radius: 0 0 6px 6px;
   }}
-  .stats {{ border-radius: 6px 6px 0 0; margin-bottom: 0; }}
   @media (max-width: 780px) {{
     .stats, .stats.secondary {{ grid-template-columns: 1fr 1fr; }}
   }}
@@ -372,34 +423,47 @@ def build_html(rows: list) -> str:
     font-family: 'IBM Plex Mono', monospace;
     font-size: 0.65rem;
     font-weight: 500;
-    letter-spacing: 0.15em;
+    letter-spacing: 0.18em;
     text-transform: uppercase;
     color: var(--text-faint);
     margin-bottom: 0.75rem;
   }}
   .stat-value {{
-    font-family: 'IBM Plex Mono', monospace;
-    font-weight: 500;
+    font-family: 'Manrope', sans-serif;
+    font-weight: 800;
     font-variant-numeric: tabular-nums;
-    letter-spacing: -0.02em;
+    letter-spacing: -0.04em;
     line-height: 1;
     color: var(--text);
   }}
   .stat.hero .stat-value {{
-    font-size: clamp(2.5rem, 6vw, 3.75rem);
-    background: linear-gradient(90deg, var(--accent) 0%, var(--accent-2) 100%);
+    font-size: clamp(2.75rem, 6.5vw, 4rem);
+    background: linear-gradient(90deg, var(--cyan) 0%, var(--teal) 100%);
     -webkit-background-clip: text;
     background-clip: text;
     -webkit-text-fill-color: transparent;
   }}
   .stat:not(.hero) .stat-value {{
-    font-size: 1.5rem;
+    font-size: 1.75rem;
+  }}
+  /* Gradient signals on specific stats */
+  .stat-value.grad-violet {{
+    background: linear-gradient(90deg, var(--violet) 0%, var(--pink) 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }}
+  .stat-value.grad-amber {{
+    background: linear-gradient(90deg, var(--amber) 0%, var(--orange) 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
   }}
   .stat-sub {{
     font-family: 'IBM Plex Mono', monospace;
     font-size: 0.7rem;
     color: var(--text-dim);
-    margin-top: 0.5rem;
+    margin-top: 0.6rem;
     letter-spacing: 0.05em;
   }}
 
@@ -420,14 +484,14 @@ def build_html(rows: list) -> str:
   .chart-title {{
     font-family: 'IBM Plex Mono', monospace;
     font-size: 0.7rem;
-    letter-spacing: 0.15em;
+    letter-spacing: 0.18em;
     text-transform: uppercase;
     color: var(--text-dim);
   }}
   .chart-actions a {{
     font-family: 'IBM Plex Mono', monospace;
     font-size: 0.7rem;
-    letter-spacing: 0.1em;
+    letter-spacing: 0.12em;
     text-transform: uppercase;
     color: var(--text-dim);
     text-decoration: none;
@@ -438,8 +502,8 @@ def build_html(rows: list) -> str:
     transition: all 0.15s ease;
   }}
   .chart-actions a:hover {{
-    color: var(--accent);
-    border-color: var(--accent);
+    color: var(--cyan);
+    border-color: var(--cyan);
     background: var(--accent-soft);
   }}
   svg#chart {{ display: block; width: 100%; height: 320px; }}
@@ -456,7 +520,7 @@ def build_html(rows: list) -> str:
     border-bottom: 1px solid var(--border);
     font-family: 'IBM Plex Mono', monospace;
     font-size: 0.7rem;
-    letter-spacing: 0.15em;
+    letter-spacing: 0.18em;
     text-transform: uppercase;
     color: var(--text-dim);
   }}
@@ -471,7 +535,7 @@ def build_html(rows: list) -> str:
     padding: 0.75rem 1.5rem;
     font-weight: 500;
     font-size: 0.7rem;
-    letter-spacing: 0.1em;
+    letter-spacing: 0.12em;
     text-transform: uppercase;
     color: var(--text-faint);
     border-bottom: 1px solid var(--border);
@@ -517,8 +581,15 @@ def build_html(rows: list) -> str:
       <div class="brand-dot"></div>
       <span class="brand-label">Live Tracker</span>
     </div>
-    <div class="header-meta">
-      {readings_count} readings · {hours_elapsed}h elapsed
+    <div class="header-cluster">
+      <div class="header-meta">
+        <span class="header-meta-row"><strong>{readings_count}</strong> readings logged</span>
+        <span class="header-meta-row">next reading in <strong>{next_reading_min}m</strong></span>
+      </div>
+      <div class="h-plus">
+        <span class="h-plus-value">H+{h_plus:02d}</span>
+        <span class="h-plus-label">hours since launch</span>
+      </div>
     </div>
   </div>
 
@@ -539,20 +610,20 @@ def build_html(rows: list) -> str:
     </div>
     <div class="stat">
       <div class="stat-label">Likes</div>
-      <div class="stat-value">{latest_likes_str}</div>
-      <div class="stat-sub">cumulative</div>
+      <div class="stat-value grad-violet">{latest_likes_str}</div>
+      <div class="stat-sub">cumulative engagement</div>
     </div>
     <div class="stat">
       <div class="stat-label">Comments</div>
-      <div class="stat-value">{latest_comments_str}</div>
-      <div class="stat-sub">cumulative</div>
+      <div class="stat-value grad-violet">{latest_comments_str}</div>
+      <div class="stat-sub">cumulative engagement</div>
     </div>
   </div>
 
   <div class="stats secondary">
     <div class="stat">
       <div class="stat-label">Last Hour Δ</div>
-      <div class="stat-value">{last_delta_str}</div>
+      <div class="stat-value grad-amber">{last_delta_str}</div>
       <div class="stat-sub">views / hour</div>
     </div>
     <div class="stat">
@@ -562,7 +633,7 @@ def build_html(rows: list) -> str:
     </div>
     <div class="stat">
       <div class="stat-label">Peak Rate</div>
-      <div class="stat-value">{peak_str}</div>
+      <div class="stat-value grad-amber">{peak_str}</div>
       <div class="stat-sub">highest hourly velocity</div>
     </div>
   </div>
@@ -642,7 +713,7 @@ if (points.length < 2) {{
     const p = points[idx];
     if (!p) continue;
     const x = xScale(p.i);
-    const label = 'r' + String(p.i + 1).padStart(2, '0');
+    const label = 'H+' + String(p.i).padStart(2, '0');
     xLabels.push(
       `<text x="${{x}}" y="${{H - padB + 20}}" text-anchor="middle" fill="#5a6676" font-family="IBM Plex Mono, monospace" font-size="10">${{label}}</text>`
     );
