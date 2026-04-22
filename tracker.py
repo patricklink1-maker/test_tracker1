@@ -1,7 +1,7 @@
 """
-Runs ONCE per GitHub Actions invocation. Fetches the current YouTube
-view count for VIDEO_URL and appends a new row to view_counts.csv.
-Also regenerates index.html (a simple dashboard page).
+Runs ONCE per GitHub Actions invocation. Uses the YouTube Data API
+to fetch the current view count for VIDEO_URL and appends a row
+to view_counts.csv. Also regenerates index.html.
 """
 
 import csv
@@ -9,6 +9,7 @@ import json as _json
 import os
 import re
 from datetime import datetime, timezone
+from urllib.parse import urlparse, parse_qs
 
 import requests
 
@@ -18,60 +19,40 @@ OUTPUT_CSV = "view_counts.csv"
 OUTPUT_HTML = "index.html"
 # ------------------------
 
-HEADERS = {
-    "User-Agent": (
-        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
-        "AppleWebKit/537.36 (KHTML, like Gecko) "
-        "Chrome/124.0.0.0 Safari/537.36"
-    ),
-    "Accept-Language": "en-US,en;q=0.9",
-    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
-    "Cookie": "CONSENT=YES+cb; SOCS=CAISEwgDEgk0ODE3Nzk3MjQaAmVuIAEaBgiA_LyaBg",
-}
-
+API_KEY = os.environ.get("YOUTUBE_API_KEY")
 CSV_FIELDS = ["timestamp_utc", "view_count", "title"]
 
 
+def extract_video_id(url: str) -> str:
+    parsed = urlparse(url)
+    if parsed.hostname == "youtu.be":
+        return parsed.path.lstrip("/")
+    qs = parse_qs(parsed.query)
+    if "v" in qs:
+        return qs["v"][0]
+    raise ValueError(f"Could not extract video id from URL: {url}")
+
+
 def fetch_stats(video_url: str) -> dict:
-    r = requests.get(video_url, headers=HEADERS, timeout=30)
+    if not API_KEY:
+        raise RuntimeError("YOUTUBE_API_KEY environment variable is not set")
+    video_id = extract_video_id(video_url)
+    r = requests.get(
+        "https://www.googleapis.com/youtube/v3/videos",
+        params={"part": "statistics,snippet", "id": video_id, "key": API_KEY},
+        timeout=30,
+    )
     r.raise_for_status()
-    html = r.text
-
-    views = None
-    title = ""
-
-    # Strategy 1: viewCount in the ytInitialPlayerResponse JSON blob
-    m = re.search(r'"viewCount":"(\d+)"', html)
-    if m:
-        views = int(m.group(1))
-
-    # Strategy 2: interactionCount in the schema.org meta block
-    if views is None:
-        m = re.search(r'"interactionCount":"(\d+)"', html)
-        if m:
-            views = int(m.group(1))
-
-    # Strategy 3: og meta view count
-    if views is None:
-        m = re.search(r'<meta itemprop="interactionCount" content="(\d+)"', html)
-        if m:
-            views = int(m.group(1))
-
-    if views is None:
-        # Dump a small diagnostic snippet to help debug future breakage
-        snippet = html[:400].replace("\n", " ")
-        raise RuntimeError(f"Could not find view count. First 400 chars: {snippet!r}")
-
-    # Title
-    m = re.search(r'"title":"([^"]+)","lengthSeconds"', html)
-    if m:
-        title = m.group(1)
-    else:
-        m = re.search(r'<meta name="title" content="([^"]+)"', html)
-        if m:
-            title = m.group(1)
-
-    return {"view_count": views, "title": title}
+    data = r.json()
+    items = data.get("items", [])
+    if not items:
+        raise RuntimeError(f"No video found for id={video_id}. API response: {data}")
+    stats = items[0]["statistics"]
+    snippet = items[0]["snippet"]
+    return {
+        "view_count": int(stats.get("viewCount", 0)),
+        "title": snippet.get("title", ""),
+    }
 
 
 def append_row(path: str, row: dict) -> None:
@@ -187,9 +168,7 @@ def build_html(rows: list) -> str:
 </table>
 
 <p class="footer">
-  Auto-updated hourly by GitHub Actions. View count is scraped from the public
-  YouTube watch page; YouTube throttles and de-duplicates counts, so treat the
-  curve shape as the signal rather than any single hour's value.
+  Auto-updated hourly by GitHub Actions via the YouTube Data API.
 </p>
 
 <script>
