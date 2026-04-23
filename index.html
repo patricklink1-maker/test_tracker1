@@ -30,10 +30,8 @@
   * { box-sizing: border-box; }
 
   html, body {
-    margin: 0;
-    padding: 0;
-    background: var(--bg);
-    color: var(--text);
+    margin: 0; padding: 0;
+    background: var(--bg); color: var(--text);
     font-family: 'Manrope', -apple-system, sans-serif;
     font-weight: 400;
     -webkit-font-smoothing: antialiased;
@@ -55,24 +53,14 @@
   }
 
   .header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
+    display: flex; justify-content: space-between; align-items: center;
     border-bottom: 1px solid var(--border);
-    padding-bottom: 1.5rem;
-    margin-bottom: 2rem;
-    flex-wrap: wrap;
-    gap: 1.5rem;
+    padding-bottom: 1.5rem; margin-bottom: 2rem;
+    flex-wrap: wrap; gap: 1.5rem;
   }
-  .brand {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-  }
+  .brand { display: flex; align-items: center; gap: 0.75rem; }
   .brand-dot {
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
+    width: 8px; height: 8px; border-radius: 50%;
     background: var(--cyan);
     box-shadow: 0 0 14px var(--cyan);
     animation: pulse 2s ease-in-out infinite;
@@ -83,180 +71,233 @@
   }
   .brand-label {
     font-family: 'IBM Plex Mono', monospace;
-    font-size: 0.75rem;
-    font-weight: 500;
-    letter-spacing: 0.2em;
-    text-transform: uppercase;
+    font-size: 0.75rem; font-weight: 500;
+    letter-spacing: 0.2em; text-transform: uppercase;
     color: var(--text-dim);
   }
-  .header-cluster {
-    display: flex;
-    align-items: center;
-    gap: 2rem;
-  }
-  .h-plus {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-end;
-    line-height: 1;
-  }
+  .header-cluster { display: flex; align-items: center; gap: 2rem; }
+  .h-plus { display: flex; flex-direction: column; align-items: flex-end; line-height: 1; }
   .h-plus-value {
     font-family: 'Manrope', sans-serif;
-    font-weight: 800;
-    font-size: 2rem;
-    letter-spacing: -0.03em;
-    line-height: 1;
+    font-weight: 800; font-size: 2rem;
+    letter-spacing: -0.03em; line-height: 1;
     background: linear-gradient(90deg, var(--cyan), var(--teal));
-    -webkit-background-clip: text;
-    background-clip: text;
+    -webkit-background-clip: text; background-clip: text;
     -webkit-text-fill-color: transparent;
     font-variant-numeric: tabular-nums;
   }
   .h-plus-label {
     font-family: 'IBM Plex Mono', monospace;
-    font-size: 0.6rem;
-    letter-spacing: 0.2em;
-    text-transform: uppercase;
-    color: var(--text-faint);
-    margin-top: 0.25rem;
+    font-size: 0.6rem; letter-spacing: 0.2em; text-transform: uppercase;
+    color: var(--text-faint); margin-top: 0.25rem;
   }
-  .header-meta {
-    display: flex;
-    flex-direction: column;
-    gap: 0.15rem;
-    align-items: flex-end;
-  }
+  .header-meta { display: flex; flex-direction: column; gap: 0.15rem; align-items: flex-end; }
   .header-meta-row {
     font-family: 'IBM Plex Mono', monospace;
-    font-size: 0.7rem;
-    color: var(--text-faint);
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
+    font-size: 0.7rem; color: var(--text-faint);
+    letter-spacing: 0.1em; text-transform: uppercase;
   }
   .header-meta-row strong { color: var(--text-dim); font-weight: 500; }
 
-  .title-block {
-    margin-bottom: 2rem;
-  }
+  /* Title block */
+  .title-block { margin-bottom: 2rem; }
   h1.product-title {
     font-family: 'Manrope', sans-serif;
     font-size: clamp(2.25rem, 5.5vw, 3.5rem);
-    font-weight: 800;
-    margin: 0 0 0.4rem 0;
-    letter-spacing: -0.04em;
-    line-height: 1;
+    font-weight: 800; margin: 0 0 0.4rem 0;
+    letter-spacing: -0.04em; line-height: 1;
     background: linear-gradient(90deg, var(--cyan) 0%, var(--teal) 100%);
-    -webkit-background-clip: text;
-    background-clip: text;
+    -webkit-background-clip: text; background-clip: text;
     -webkit-text-fill-color: transparent;
   }
   .product-subtitle {
     font-family: 'Manrope', sans-serif;
     font-size: clamp(0.95rem, 1.6vw, 1.1rem);
-    color: var(--text-dim);
-    font-weight: 400;
-    margin: 0 0 1.75rem 0;
-    letter-spacing: -0.01em;
+    color: var(--text-dim); font-weight: 400;
+    margin: 0 0 1.75rem 0; letter-spacing: -0.01em;
   }
-  .current-title-row {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.75rem;
-    padding: 0.6rem 1rem;
+
+  /* Trailer card */
+  .trailer-card {
+    display: grid;
+    grid-template-columns: 280px 1fr;
+    gap: 1.5rem;
     background: var(--bg-card);
     border: 1px solid var(--border);
-    border-radius: 6px;
+    border-radius: 8px;
+    overflow: hidden;
+    margin-bottom: 2.5rem;
   }
-  .current-title-label {
+  @media (max-width: 720px) {
+    .trailer-card { grid-template-columns: 1fr; }
+  }
+  .trailer-thumb {
+    position: relative;
+    aspect-ratio: 16 / 9;
+    overflow: hidden;
+    background: var(--bg-elev);
+  }
+  .trailer-thumb img {
+    width: 100%; height: 100%; object-fit: cover;
+    display: block; transition: transform 0.4s ease;
+  }
+  .trailer-thumb:hover img { transform: scale(1.03); }
+  .trailer-thumb::after {
+    content: ''; position: absolute; inset: 0;
+    background: linear-gradient(135deg, transparent 60%, rgba(0,0,0,0.4));
+    pointer-events: none;
+  }
+  .live-badge {
+    position: absolute; top: 0.75rem; left: 0.75rem;
+    display: inline-flex; align-items: center; gap: 0.4rem;
+    padding: 0.3rem 0.6rem;
+    background: rgba(7, 9, 12, 0.85);
+    backdrop-filter: blur(8px);
+    border: 1px solid var(--cyan);
+    border-radius: 3px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.65rem;
+    font-weight: 600;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--cyan);
+    z-index: 2;
+  }
+  .live-badge-dot {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: var(--cyan);
+    box-shadow: 0 0 8px var(--cyan);
+    animation: pulse 1.6s ease-in-out infinite;
+  }
+  .trailer-info {
+    padding: 1.5rem 1.5rem 1.5rem 0;
+    display: flex; flex-direction: column;
+    justify-content: space-between;
+    min-width: 0;
+  }
+  @media (max-width: 720px) {
+    .trailer-info { padding: 0 1.5rem 1.5rem; }
+  }
+  .trailer-eyebrow {
     font-family: 'IBM Plex Mono', monospace;
     font-size: 0.65rem;
     letter-spacing: 0.2em;
     text-transform: uppercase;
     color: var(--text-faint);
+    margin-bottom: 0.5rem;
   }
-  .current-title-value {
+  .trailer-title {
     font-family: 'Manrope', sans-serif;
-    font-size: 1rem;
-    font-weight: 600;
+    font-size: 1.35rem;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    line-height: 1.2;
     color: var(--text);
-    letter-spacing: -0.01em;
+    margin: 0 0 0.5rem 0;
+  }
+  .trailer-channel {
+    font-family: 'Manrope', sans-serif;
+    font-size: 0.9rem;
+    color: var(--text-dim);
+    margin-bottom: 1rem;
+  }
+  .trailer-meta {
+    display: flex; flex-wrap: wrap; gap: 1rem;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.7rem; color: var(--text-faint);
+    letter-spacing: 0.05em;
+    margin-bottom: 1.25rem;
+    padding-bottom: 1.25rem;
+    border-bottom: 1px solid var(--border);
+  }
+  .trailer-meta strong { color: var(--text-dim); font-weight: 500; }
+  .trailer-link {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.75rem; font-weight: 500;
+    letter-spacing: 0.12em; text-transform: uppercase;
+    color: var(--cyan);
+    text-decoration: none;
+    align-self: flex-start;
+    padding: 0.5rem 0.9rem;
+    border: 1px solid var(--cyan);
+    border-radius: 4px;
+    background: transparent;
+    transition: all 0.15s ease;
+  }
+  .trailer-link:hover {
+    background: var(--accent-soft);
+    box-shadow: 0 0 16px rgba(34, 211, 238, 0.25);
   }
 
+  /* Stats grid */
   .stats {
-    display: grid;
-    grid-template-columns: 2fr 1fr 1fr;
-    gap: 1px;
-    background: var(--border);
+    display: grid; grid-template-columns: 2fr 1fr 1fr;
+    gap: 1px; background: var(--border);
     border: 1px solid var(--border);
     overflow: hidden;
-    margin: 2.5rem 0 0;
+    margin: 0;
     border-radius: 6px 6px 0 0;
   }
   .stats.secondary {
-    grid-template-columns: 1fr 1fr 1fr;
-    margin-top: 1px;
-    margin-bottom: 2.5rem;
-    border-top: none;
-    border-radius: 0 0 6px 6px;
+    grid-template-columns: 1fr 1fr 1fr 1fr;
+    margin-top: 1px; margin-bottom: 2.5rem;
+    border-top: none; border-radius: 0 0 6px 6px;
   }
   @media (max-width: 780px) {
-    .stats, .stats.secondary { grid-template-columns: 1fr 1fr; }
+    .stats { grid-template-columns: 1fr 1fr; }
+    .stats.secondary { grid-template-columns: 1fr 1fr; }
   }
-  .stat {
-    background: var(--bg-card);
-    padding: 1.5rem;
-    position: relative;
-  }
-  .stat.hero {
-    background: linear-gradient(135deg, var(--bg-card), var(--bg-elev));
-  }
+  .stat { background: var(--bg-card); padding: 1.5rem; position: relative; }
+  .stat.hero { background: linear-gradient(135deg, var(--bg-card), var(--bg-elev)); }
   .stat-label {
     font-family: 'IBM Plex Mono', monospace;
-    font-size: 0.65rem;
-    font-weight: 500;
-    letter-spacing: 0.18em;
-    text-transform: uppercase;
-    color: var(--text-faint);
-    margin-bottom: 0.75rem;
+    font-size: 0.65rem; font-weight: 500;
+    letter-spacing: 0.18em; text-transform: uppercase;
+    color: var(--text-faint); margin-bottom: 0.75rem;
   }
   .stat-value {
     font-family: 'Manrope', sans-serif;
     font-weight: 800;
     font-variant-numeric: tabular-nums;
     letter-spacing: -0.04em;
-    line-height: 1;
-    color: var(--text);
+    line-height: 1; color: var(--text);
   }
   .stat.hero .stat-value {
     font-size: clamp(2.75rem, 6.5vw, 4rem);
     background: linear-gradient(90deg, var(--cyan) 0%, var(--teal) 100%);
-    -webkit-background-clip: text;
-    background-clip: text;
+    -webkit-background-clip: text; background-clip: text;
     -webkit-text-fill-color: transparent;
   }
-  .stat:not(.hero) .stat-value {
-    font-size: 1.75rem;
-  }
+  .stat:not(.hero) .stat-value { font-size: 1.5rem; }
   .stat-value.grad-violet {
     background: linear-gradient(90deg, var(--violet) 0%, var(--pink) 100%);
-    -webkit-background-clip: text;
-    background-clip: text;
+    -webkit-background-clip: text; background-clip: text;
     -webkit-text-fill-color: transparent;
   }
   .stat-value.grad-amber {
     background: linear-gradient(90deg, var(--amber) 0%, var(--orange) 100%);
-    -webkit-background-clip: text;
-    background-clip: text;
+    -webkit-background-clip: text; background-clip: text;
     -webkit-text-fill-color: transparent;
   }
   .stat-sub {
     font-family: 'IBM Plex Mono', monospace;
-    font-size: 0.7rem;
-    color: var(--text-dim);
-    margin-top: 0.6rem;
-    letter-spacing: 0.05em;
+    font-size: 0.7rem; color: var(--text-dim);
+    margin-top: 0.6rem; letter-spacing: 0.05em;
   }
+  .benchmark-pill {
+    display: inline-block;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.6rem; font-weight: 600;
+    letter-spacing: 0.15em; text-transform: uppercase;
+    padding: 0.2rem 0.5rem;
+    border-radius: 3px;
+    margin-top: 0.6rem;
+  }
+  .benchmark-pill.below { color: var(--orange); background: rgba(249, 115, 22, 0.12); }
+  .benchmark-pill.at { color: var(--amber); background: rgba(251, 191, 36, 0.12); }
+  .benchmark-pill.above { color: var(--positive); background: rgba(74, 222, 128, 0.12); }
 
+  /* Chart */
   .chart-card {
     background: var(--bg-card);
     border: 1px solid var(--border);
@@ -265,69 +306,66 @@
     margin-bottom: 2.5rem;
   }
   .chart-head {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 1rem;
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 1rem; flex-wrap: wrap; gap: 0.75rem;
   }
   .chart-title {
     font-family: 'IBM Plex Mono', monospace;
-    font-size: 0.7rem;
-    letter-spacing: 0.18em;
-    text-transform: uppercase;
-    color: var(--text-dim);
+    font-size: 0.7rem; letter-spacing: 0.18em;
+    text-transform: uppercase; color: var(--text-dim);
   }
+  .chart-controls { display: flex; gap: 0.4rem; align-items: center; flex-wrap: wrap; }
+  .range-pills { display: flex; gap: 0; background: var(--bg-elev); border: 1px solid var(--border); border-radius: 4px; overflow: hidden; }
+  .range-pill {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.7rem; letter-spacing: 0.1em;
+    text-transform: uppercase; color: var(--text-dim);
+    background: transparent; border: none;
+    padding: 0.4rem 0.8rem; cursor: pointer;
+    transition: all 0.15s ease;
+  }
+  .range-pill:not(:last-child) { border-right: 1px solid var(--border); }
+  .range-pill:hover { color: var(--text); background: rgba(34,211,238,0.06); }
+  .range-pill.active { color: var(--cyan); background: var(--accent-soft); }
   .chart-actions a {
     font-family: 'IBM Plex Mono', monospace;
-    font-size: 0.7rem;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
-    color: var(--text-dim);
+    font-size: 0.7rem; letter-spacing: 0.12em;
+    text-transform: uppercase; color: var(--text-dim);
     text-decoration: none;
     padding: 0.4rem 0.75rem;
     border: 1px solid var(--border);
-    border-radius: 4px;
-    margin-left: 0.5rem;
+    border-radius: 4px; margin-left: 0.5rem;
     transition: all 0.15s ease;
   }
   .chart-actions a:hover {
-    color: var(--cyan);
-    border-color: var(--cyan);
+    color: var(--cyan); border-color: var(--cyan);
     background: var(--accent-soft);
   }
   svg#chart { display: block; width: 100%; height: 320px; }
 
+  /* Table */
   .table-card {
     background: var(--bg-card);
     border: 1px solid var(--border);
-    border-radius: 6px;
-    overflow: hidden;
+    border-radius: 6px; overflow: hidden;
   }
   .table-head {
     padding: 1.25rem 1.5rem;
     border-bottom: 1px solid var(--border);
     font-family: 'IBM Plex Mono', monospace;
-    font-size: 0.7rem;
-    letter-spacing: 0.18em;
-    text-transform: uppercase;
-    color: var(--text-dim);
+    font-size: 0.7rem; letter-spacing: 0.18em;
+    text-transform: uppercase; color: var(--text-dim);
   }
-  table {
-    width: 100%;
-    border-collapse: collapse;
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 0.85rem;
-  }
+  .table-scroll { max-height: 540px; overflow-y: auto; }
+  table { width: 100%; border-collapse: collapse; font-family: 'IBM Plex Mono', monospace; font-size: 0.85rem; }
   th {
-    text-align: left;
-    padding: 0.75rem 1.5rem;
-    font-weight: 500;
-    font-size: 0.7rem;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
+    text-align: left; padding: 0.75rem 1.5rem;
+    font-weight: 500; font-size: 0.7rem;
+    letter-spacing: 0.12em; text-transform: uppercase;
     color: var(--text-faint);
     border-bottom: 1px solid var(--border);
     background: var(--bg-elev);
+    position: sticky; top: 0; z-index: 1;
   }
   td {
     padding: 0.9rem 1.5rem;
@@ -346,16 +384,12 @@
   .empty { text-align: center; color: var(--text-faint); padding: 2.5rem; font-style: italic; }
 
   .footer {
-    margin-top: 3rem;
-    padding-top: 1.5rem;
+    margin-top: 3rem; padding-top: 1.5rem;
     border-top: 1px solid var(--border);
-    display: flex;
-    justify-content: space-between;
-    flex-wrap: wrap;
-    gap: 0.5rem;
+    display: flex; justify-content: space-between;
+    flex-wrap: wrap; gap: 0.5rem;
     font-family: 'IBM Plex Mono', monospace;
-    font-size: 0.7rem;
-    color: var(--text-faint);
+    font-size: 0.7rem; color: var(--text-faint);
     letter-spacing: 0.05em;
   }
 </style>
@@ -370,11 +404,11 @@
     </div>
     <div class="header-cluster">
       <div class="header-meta">
-        <span class="header-meta-row"><strong>16</strong> readings logged</span>
-        <span class="header-meta-row">next reading in <strong>25m</strong></span>
+        <span class="header-meta-row"><strong>22</strong> readings logged</span>
+        <span class="header-meta-row">next reading in <strong>~11m</strong></span>
       </div>
       <div class="h-plus">
-        <span class="h-plus-value">H+20</span>
+        <span class="h-plus-value">H+21</span>
         <span class="h-plus-label">hours since launch</span>
       </div>
     </div>
@@ -383,9 +417,24 @@
   <div class="title-block">
     <h1 class="product-title">Trailer Watch</h1>
     <p class="product-subtitle">Tracking the first 72 hours of trailer drop</p>
-    <div class="current-title-row">
-      <span class="current-title-label">Current Title</span>
-      <span class="current-title-value">Clayface (2026)</span>
+  </div>
+
+  <div class="trailer-card">
+    <a class="trailer-thumb" href="https://www.youtube.com/watch?v=6IxPD-jNdwM" target="_blank" rel="noopener">
+      <span class="live-badge"><span class="live-badge-dot"></span>Live Tracking</span>
+      <img src="https://img.youtube.com/vi/6IxPD-jNdwM/maxresdefault.jpg" onerror="this.onerror=null;this.src='https://img.youtube.com/vi/6IxPD-jNdwM/hqdefault.jpg'" alt="Trailer thumbnail">
+    </a>
+    <div class="trailer-info">
+      <div>
+        <div class="trailer-eyebrow">Currently Tracking</div>
+        <h2 class="trailer-title">Clayface (2026)</h2>
+        <div class="trailer-channel">Clayface | Official Teaser · DC</div>
+      </div>
+      <div class="trailer-meta">
+        <span><strong>Published</strong> · Apr 22, 2026 · 19:01 UTC</span>
+        <span><strong>Tracking since</strong> · 2026-04-22 19:08 UTC</span>
+      </div>
+      <a class="trailer-link" href="https://www.youtube.com/watch?v=6IxPD-jNdwM" target="_blank" rel="noopener">Watch on YouTube ↗</a>
     </div>
   </div>
 
@@ -393,7 +442,7 @@
     <div class="stat hero">
       <div class="stat-label">Views</div>
       <div class="stat-value">1,644,583</div>
-      <div class="stat-sub">Last reading · 2026-04-23 15:35 UTC</div>
+      <div class="stat-sub">Last reading · 2026-04-23 16:00 UTC</div>
     </div>
     <div class="stat">
       <div class="stat-label">Likes</div>
@@ -410,27 +459,39 @@
   <div class="stats secondary">
     <div class="stat">
       <div class="stat-label">Last Hour Δ</div>
-      <div class="stat-value grad-amber">+54,127</div>
+      <div class="stat-value grad-amber">+49,466</div>
       <div class="stat-sub">views / hour</div>
     </div>
     <div class="stat">
       <div class="stat-label">Avg Rate</div>
-      <div class="stat-value">+79,668</div>
+      <div class="stat-value">+78,102</div>
       <div class="stat-sub">views / hour since launch</div>
     </div>
     <div class="stat">
       <div class="stat-label">Peak Rate</div>
-      <div class="stat-value grad-amber">158,267</div>
+      <div class="stat-value grad-amber">186,135</div>
       <div class="stat-sub">highest hourly velocity</div>
+    </div>
+    <div class="stat">
+      <div class="stat-label">Engagement Rate</div>
+      <div class="stat-value">7.37%</div>
+      <div class="benchmark-pill above">above benchmark</div>
     </div>
   </div>
 
   <div class="chart-card">
     <div class="chart-head">
       <div class="chart-title">Cumulative Views</div>
-      <div class="chart-actions">
-        <a href="view_counts.csv" download>Download CSV</a>
-        <a href=".">Refresh</a>
+      <div class="chart-controls">
+        <div class="range-pills" id="rangePills">
+          <button class="range-pill" data-range="6">Last 6h</button>
+          <button class="range-pill" data-range="24">Last 24h</button>
+          <button class="range-pill active" data-range="all">All Time</button>
+        </div>
+        <span class="chart-actions">
+          <a href="view_counts.csv" download>CSV</a>
+          <a href=".">Refresh</a>
+        </span>
       </div>
     </div>
     <svg id="chart" viewBox="0 0 1100 320" preserveAspectRatio="none"></svg>
@@ -438,6 +499,7 @@
 
   <div class="table-card">
     <div class="table-head">Reading Log</div>
+    <div class="table-scroll">
     <table>
       <thead>
         <tr>
@@ -451,23 +513,30 @@
       </thead>
       <tbody>
         <tr><td class="idx">01</td><td><div class="tstack"><span class="tdate">Apr 22</span><span class="ttime">19:08 UTC</span></div></td><td class="num">15,946</td><td class="num delta">—</td><td class="num">4,819</td><td class="num">495</td></tr>
-<tr><td class="idx">02</td><td><div class="tstack"><span class="tdate">Apr 22</span><span class="ttime">19:31 UTC</span></div></td><td class="num">75,604</td><td class="num delta">+59,658</td><td class="num">14,372</td><td class="num">1,209</td></tr>
-<tr><td class="idx">03</td><td><div class="tstack"><span class="tdate">Apr 22</span><span class="ttime">21:01 UTC</span></div></td><td class="num">253,015</td><td class="num delta">+177,411</td><td class="num">39,951</td><td class="num">2,990</td></tr>
-<tr><td class="idx">04</td><td><div class="tstack"><span class="tdate">Apr 22</span><span class="ttime">22:04 UTC</span></div></td><td class="num">390,945</td><td class="num delta">+137,930</td><td class="num">51,742</td><td class="num">3,648</td></tr>
-<tr><td class="idx">05</td><td><div class="tstack"><span class="tdate">Apr 22</span><span class="ttime">22:05 UTC</span></div></td><td class="num">392,167</td><td class="num delta">+1,222</td><td class="num">51,884</td><td class="num">3,655</td></tr>
-<tr><td class="idx">06</td><td><div class="tstack"><span class="tdate">Apr 22</span><span class="ttime">23:13 UTC</span></div></td><td class="num">553,217</td><td class="num delta">+161,050</td><td class="num">63,317</td><td class="num">4,241</td></tr>
-<tr><td class="idx">07</td><td><div class="tstack"><span class="tdate">Apr 23</span><span class="ttime">00:32 UTC</span></div></td><td class="num">717,792</td><td class="num delta">+164,575</td><td class="num">72,848</td><td class="num">4,743</td></tr>
-<tr><td class="idx">08</td><td><div class="tstack"><span class="tdate">Apr 23</span><span class="ttime">01:42 UTC</span></div></td><td class="num">874,749</td><td class="num delta">+156,957</td><td class="num">79,526</td><td class="num">5,049</td></tr>
-<tr><td class="idx">09</td><td><div class="tstack"><span class="tdate">Apr 23</span><span class="ttime">02:35 UTC</span></div></td><td class="num">948,805</td><td class="num delta">+74,056</td><td class="num">83,911</td><td class="num">5,260</td></tr>
-<tr><td class="idx">10</td><td><div class="tstack"><span class="tdate">Apr 23</span><span class="ttime">03:34 UTC</span></div></td><td class="num">1,042,949</td><td class="num delta">+94,144</td><td class="num">88,433</td><td class="num">5,493</td></tr>
-<tr><td class="idx">11</td><td><div class="tstack"><span class="tdate">Apr 23</span><span class="ttime">07:16 UTC</span></div></td><td class="num">1,296,789</td><td class="num delta">+253,840</td><td class="num">100,736</td><td class="num">5,955</td></tr>
-<tr><td class="idx">12</td><td><div class="tstack"><span class="tdate">Apr 23</span><span class="ttime">11:01 UTC</span></div></td><td class="num">1,466,085</td><td class="num delta">+169,296</td><td class="num">106,131</td><td class="num">6,251</td></tr>
-<tr><td class="idx">13</td><td><div class="tstack"><span class="tdate">Apr 23</span><span class="ttime">11:41 UTC</span></div></td><td class="num">1,484,977</td><td class="num delta">+18,892</td><td class="num">107,241</td><td class="num">6,305</td></tr>
-<tr><td class="idx">14</td><td><div class="tstack"><span class="tdate">Apr 23</span><span class="ttime">13:30 UTC</span></div></td><td class="num">1,552,309</td><td class="num delta">+67,332</td><td class="num">110,403</td><td class="num">6,456</td></tr>
-<tr><td class="idx">15</td><td><div class="tstack"><span class="tdate">Apr 23</span><span class="ttime">14:40 UTC</span></div></td><td class="num">1,595,117</td><td class="num delta">+42,808</td><td class="num">112,706</td><td class="num">6,561</td></tr>
-<tr><td class="idx">16</td><td><div class="tstack"><span class="tdate">Apr 23</span><span class="ttime">15:35 UTC</span></div></td><td class="num">1,644,583</td><td class="num delta">+49,466</td><td class="num">114,542</td><td class="num">6,678</td></tr>
+<tr><td class="idx">02</td><td><div class="tstack"><span class="tdate">Apr 22</span><span class="ttime">20:00 UTC</span></div></td><td class="num">174,678</td><td class="num delta">+158,732</td><td class="num">22,385</td><td class="num">1,742</td></tr>
+<tr><td class="idx">03</td><td><div class="tstack"><span class="tdate">Apr 22</span><span class="ttime">21:00 UTC</span></div></td><td class="num">253,015</td><td class="num delta">+78,337</td><td class="num">39,951</td><td class="num">2,990</td></tr>
+<tr><td class="idx">04</td><td><div class="tstack"><span class="tdate">Apr 22</span><span class="ttime">22:00 UTC</span></div></td><td class="num">390,945</td><td class="num delta">+137,930</td><td class="num">51,742</td><td class="num">3,648</td></tr>
+<tr><td class="idx">05</td><td><div class="tstack"><span class="tdate">Apr 22</span><span class="ttime">23:00 UTC</span></div></td><td class="num">553,217</td><td class="num delta">+162,272</td><td class="num">63,317</td><td class="num">4,241</td></tr>
+<tr><td class="idx">06</td><td><div class="tstack"><span class="tdate">Apr 23</span><span class="ttime">00:00 UTC</span></div></td><td class="num">635,504</td><td class="num delta">+82,287</td><td class="num">68,082</td><td class="num">4,492</td></tr>
+<tr><td class="idx">07</td><td><div class="tstack"><span class="tdate">Apr 23</span><span class="ttime">01:00 UTC</span></div></td><td class="num">717,792</td><td class="num delta">+82,288</td><td class="num">72,848</td><td class="num">4,743</td></tr>
+<tr><td class="idx">08</td><td><div class="tstack"><span class="tdate">Apr 23</span><span class="ttime">02:00 UTC</span></div></td><td class="num">874,749</td><td class="num delta">+156,957</td><td class="num">79,526</td><td class="num">5,049</td></tr>
+<tr><td class="idx">09</td><td><div class="tstack"><span class="tdate">Apr 23</span><span class="ttime">03:00 UTC</span></div></td><td class="num">948,805</td><td class="num delta">+74,056</td><td class="num">83,911</td><td class="num">5,260</td></tr>
+<tr><td class="idx">10</td><td><div class="tstack"><span class="tdate">Apr 23</span><span class="ttime">04:00 UTC</span></div></td><td class="num">1,042,949</td><td class="num delta">+94,144</td><td class="num">88,433</td><td class="num">5,493</td></tr>
+<tr><td class="idx">11</td><td><div class="tstack"><span class="tdate">Apr 23</span><span class="ttime">05:00 UTC</span></div></td><td class="num">1,127,562</td><td class="num delta">+84,613</td><td class="num">92,534</td><td class="num">5,647</td></tr>
+<tr><td class="idx">12</td><td><div class="tstack"><span class="tdate">Apr 23</span><span class="ttime">06:00 UTC</span></div></td><td class="num">1,212,176</td><td class="num delta">+84,614</td><td class="num">96,635</td><td class="num">5,801</td></tr>
+<tr><td class="idx">13</td><td><div class="tstack"><span class="tdate">Apr 23</span><span class="ttime">07:00 UTC</span></div></td><td class="num">1,296,789</td><td class="num delta">+84,613</td><td class="num">100,736</td><td class="num">5,955</td></tr>
+<tr><td class="idx">14</td><td><div class="tstack"><span class="tdate">Apr 23</span><span class="ttime">08:00 UTC</span></div></td><td class="num">1,339,113</td><td class="num delta">+42,324</td><td class="num">102,085</td><td class="num">6,029</td></tr>
+<tr><td class="idx">15</td><td><div class="tstack"><span class="tdate">Apr 23</span><span class="ttime">09:00 UTC</span></div></td><td class="num">1,381,437</td><td class="num delta">+42,324</td><td class="num">103,434</td><td class="num">6,103</td></tr>
+<tr><td class="idx">16</td><td><div class="tstack"><span class="tdate">Apr 23</span><span class="ttime">10:00 UTC</span></div></td><td class="num">1,423,761</td><td class="num delta">+42,324</td><td class="num">104,782</td><td class="num">6,177</td></tr>
+<tr><td class="idx">17</td><td><div class="tstack"><span class="tdate">Apr 23</span><span class="ttime">11:00 UTC</span></div></td><td class="num">1,466,085</td><td class="num delta">+42,324</td><td class="num">106,131</td><td class="num">6,251</td></tr>
+<tr><td class="idx">18</td><td><div class="tstack"><span class="tdate">Apr 23</span><span class="ttime">12:00 UTC</span></div></td><td class="num">1,494,826</td><td class="num delta">+28,741</td><td class="num">107,555</td><td class="num">6,319</td></tr>
+<tr><td class="idx">19</td><td><div class="tstack"><span class="tdate">Apr 23</span><span class="ttime">13:00 UTC</span></div></td><td class="num">1,523,568</td><td class="num delta">+28,742</td><td class="num">108,979</td><td class="num">6,388</td></tr>
+<tr><td class="idx">20</td><td><div class="tstack"><span class="tdate">Apr 23</span><span class="ttime">14:00 UTC</span></div></td><td class="num">1,552,309</td><td class="num delta">+28,741</td><td class="num">110,403</td><td class="num">6,456</td></tr>
+<tr><td class="idx">21</td><td><div class="tstack"><span class="tdate">Apr 23</span><span class="ttime">15:00 UTC</span></div></td><td class="num">1,595,117</td><td class="num delta">+42,808</td><td class="num">112,706</td><td class="num">6,561</td></tr>
+<tr><td class="idx">22</td><td><div class="tstack"><span class="tdate">Apr 23</span><span class="ttime">16:00 UTC</span></div></td><td class="num">1,644,583</td><td class="num delta">+49,466</td><td class="num">114,542</td><td class="num">6,678</td></tr>
       </tbody>
     </table>
+    </div>
   </div>
 
   <div class="footer">
@@ -478,14 +547,27 @@
 </div>
 
 <script>
-const points = [{"i": 0, "v": 15946, "t": "2026-04-22T19:08:50+00:00"}, {"i": 1, "v": 75604, "t": "2026-04-22T19:31:27+00:00"}, {"i": 2, "v": 253015, "t": "2026-04-22T21:01:01+00:00"}, {"i": 3, "v": 390945, "t": "2026-04-22T22:04:15+00:00"}, {"i": 4, "v": 392167, "t": "2026-04-22T22:05:03+00:00"}, {"i": 5, "v": 553217, "t": "2026-04-22T23:13:46+00:00"}, {"i": 6, "v": 717792, "t": "2026-04-23T00:32:12+00:00"}, {"i": 7, "v": 874749, "t": "2026-04-23T01:42:45+00:00"}, {"i": 8, "v": 948805, "t": "2026-04-23T02:35:10+00:00"}, {"i": 9, "v": 1042949, "t": "2026-04-23T03:34:00+00:00"}, {"i": 10, "v": 1296789, "t": "2026-04-23T07:16:10+00:00"}, {"i": 11, "v": 1466085, "t": "2026-04-23T11:01:33+00:00"}, {"i": 12, "v": 1484977, "t": "2026-04-23T11:41:33+00:00"}, {"i": 13, "v": 1552309, "t": "2026-04-23T13:30:17+00:00"}, {"i": 14, "v": 1595117, "t": "2026-04-23T14:40:34+00:00"}, {"i": 15, "v": 1644583, "t": "2026-04-23T15:35:24+00:00"}];
-const svg = document.getElementById('chart');
+const allPoints = [{"i": 0, "v": 15946, "l": 4819, "c": 495, "t": "2026-04-22T19:08:50+00:00"}, {"i": 1, "v": 174678, "l": 22385, "c": 1742, "t": "2026-04-22T20:00:00+00:00"}, {"i": 2, "v": 253015, "l": 39951, "c": 2990, "t": "2026-04-22T21:00:00+00:00"}, {"i": 3, "v": 390945, "l": 51742, "c": 3648, "t": "2026-04-22T22:00:00+00:00"}, {"i": 4, "v": 553217, "l": 63317, "c": 4241, "t": "2026-04-22T23:00:00+00:00"}, {"i": 5, "v": 635504, "l": 68082, "c": 4492, "t": "2026-04-23T00:00:00+00:00"}, {"i": 6, "v": 717792, "l": 72848, "c": 4743, "t": "2026-04-23T01:00:00+00:00"}, {"i": 7, "v": 874749, "l": 79526, "c": 5049, "t": "2026-04-23T02:00:00+00:00"}, {"i": 8, "v": 948805, "l": 83911, "c": 5260, "t": "2026-04-23T03:00:00+00:00"}, {"i": 9, "v": 1042949, "l": 88433, "c": 5493, "t": "2026-04-23T04:00:00+00:00"}, {"i": 10, "v": 1127562, "l": 92534, "c": 5647, "t": "2026-04-23T05:00:00+00:00"}, {"i": 11, "v": 1212176, "l": 96635, "c": 5801, "t": "2026-04-23T06:00:00+00:00"}, {"i": 12, "v": 1296789, "l": 100736, "c": 5955, "t": "2026-04-23T07:00:00+00:00"}, {"i": 13, "v": 1339113, "l": 102085, "c": 6029, "t": "2026-04-23T08:00:00+00:00"}, {"i": 14, "v": 1381437, "l": 103434, "c": 6103, "t": "2026-04-23T09:00:00+00:00"}, {"i": 15, "v": 1423761, "l": 104782, "c": 6177, "t": "2026-04-23T10:00:00+00:00"}, {"i": 16, "v": 1466085, "l": 106131, "c": 6251, "t": "2026-04-23T11:00:00+00:00"}, {"i": 17, "v": 1494826, "l": 107555, "c": 6319, "t": "2026-04-23T12:00:00+00:00"}, {"i": 18, "v": 1523568, "l": 108979, "c": 6388, "t": "2026-04-23T13:00:00+00:00"}, {"i": 19, "v": 1552309, "l": 110403, "c": 6456, "t": "2026-04-23T14:00:00+00:00"}, {"i": 20, "v": 1595117, "l": 112706, "c": 6561, "t": "2026-04-23T15:00:00+00:00"}, {"i": 21, "v": 1644583, "l": 114542, "c": 6678, "t": "2026-04-23T16:00:00+00:00"}];
 
-if (points.length < 2) {
-  svg.innerHTML = '<text x="50%" y="50%" text-anchor="middle" fill="#5a6676" font-family="IBM Plex Mono, monospace" font-size="12" letter-spacing="2">AWAITING SECOND READING</text>';
-} else {
-  const W = 1100, H = 320, padL = 70, padR = 20, padT = 20, padB = 40;
-  const maxI = Math.max(...points.map(p => p.i));
+function drawChart(rangeHours) {
+  const svg = document.getElementById('chart');
+  let points;
+  if (rangeHours === 'all') {
+    points = allPoints;
+  } else {
+    const maxH = allPoints.length - 1;
+    const cutoff = maxH - parseInt(rangeHours, 10);
+    points = allPoints.filter(p => p.i >= cutoff);
+  }
+
+  if (points.length < 2) {
+    svg.innerHTML = '<text x="50%" y="50%" text-anchor="middle" fill="#5a6676" font-family="IBM Plex Mono, monospace" font-size="12" letter-spacing="2">NOT ENOUGH DATA IN THIS RANGE</text>';
+    return;
+  }
+
+  const W = 1100, H = 320, padL = 75, padR = 20, padT = 20, padB = 40;
+  const minI = points[0].i;
+  const maxI = points[points.length - 1].i;
   const maxV = Math.max(...points.map(p => p.v));
   const minV = Math.min(...points.map(p => p.v));
   const range = Math.max(1, maxV - minV);
@@ -494,7 +576,7 @@ if (points.length < 2) {
   const yMax = maxV + padY;
   const yRange = Math.max(1, yMax - yMin);
 
-  const xScale = i => padL + (i / Math.max(1, maxI)) * (W - padL - padR);
+  const xScale = i => padL + ((i - minI) / Math.max(1, maxI - minI)) * (W - padL - padR);
   const yScale = v => (H - padB) - ((v - yMin) / yRange) * (H - padT - padB);
 
   const gridLines = [];
@@ -503,21 +585,22 @@ if (points.length < 2) {
     const y = padT + (g / gridCount) * (H - padT - padB);
     const val = Math.round(yMax - (g / gridCount) * yRange);
     gridLines.push(
-      `<line x1="${padL}" y1="${y}" x2="${W - padR}" y2="${y}" stroke="#1c2430" stroke-width="1"/>` +
-      `<text x="${padL - 12}" y="${y + 4}" text-anchor="end" fill="#5a6676" font-family="IBM Plex Mono, monospace" font-size="10">${val.toLocaleString()}</text>`
+      '<line x1="' + padL + '" y1="' + y + '" x2="' + (W - padR) + '" y2="' + y + '" stroke="#1c2430" stroke-width="1"/>' +
+      '<text x="' + (padL - 12) + '" y="' + (y + 4) + '" text-anchor="end" fill="#5a6676" font-family="IBM Plex Mono, monospace" font-size="10">' + val.toLocaleString() + '</text>'
     );
   }
 
+  // Smart x-axis labels: show at most 6 labels, spread evenly
   const xLabels = [];
   const xLabelCount = Math.min(points.length, 6);
   for (let xi = 0; xi < xLabelCount; xi++) {
-    const idx = Math.round((xi / Math.max(1, xLabelCount - 1)) * maxI);
+    const idx = Math.round((xi / Math.max(1, xLabelCount - 1)) * (points.length - 1));
     const p = points[idx];
     if (!p) continue;
     const x = xScale(p.i);
     const label = 'H+' + String(p.i).padStart(2, '0');
     xLabels.push(
-      `<text x="${x}" y="${H - padB + 20}" text-anchor="middle" fill="#5a6676" font-family="IBM Plex Mono, monospace" font-size="10">${label}</text>`
+      '<text x="' + x + '" y="' + (H - padB + 20) + '" text-anchor="middle" fill="#5a6676" font-family="IBM Plex Mono, monospace" font-size="10">' + label + '</text>'
     );
   }
 
@@ -530,28 +613,41 @@ if (points.length < 2) {
     linePath += (idx === 0 ? 'M' : 'L') + xScale(p.i) + ' ' + yScale(p.v) + ' ';
   });
 
+  // Scale dot size based on density
+  const dotR = points.length > 30 ? 2.5 : points.length > 15 ? 3 : 3.5;
   const dots = points.map(p =>
-    `<circle cx="${xScale(p.i)}" cy="${yScale(p.v)}" r="3.5" fill="#07090c" stroke="#22d3ee" stroke-width="2">` +
-    `<title>${p.t} — ${p.v.toLocaleString()} views</title></circle>`
+    '<circle cx="' + xScale(p.i) + '" cy="' + yScale(p.v) + '" r="' + dotR + '" fill="#07090c" stroke="#22d3ee" stroke-width="2">' +
+    '<title>H+' + p.i + ' · ' + p.v.toLocaleString() + ' views · ' + p.t + '</title></circle>'
   ).join('');
 
   svg.innerHTML =
-    `<defs>
-      <linearGradient id="areaGrad" x1="0" y1="0" x2="0" y2="1">
-        <stop offset="0%" stop-color="#22d3ee" stop-opacity="0.28"/>
-        <stop offset="100%" stop-color="#14b8a6" stop-opacity="0"/>
-      </linearGradient>
-      <linearGradient id="lineGrad" x1="0" y1="0" x2="1" y2="0">
-        <stop offset="0%" stop-color="#22d3ee"/>
-        <stop offset="100%" stop-color="#14b8a6"/>
-      </linearGradient>
-    </defs>` +
+    '<defs>' +
+      '<linearGradient id="areaGrad" x1="0" y1="0" x2="0" y2="1">' +
+        '<stop offset="0%" stop-color="#22d3ee" stop-opacity="0.28"/>' +
+        '<stop offset="100%" stop-color="#14b8a6" stop-opacity="0"/>' +
+      '</linearGradient>' +
+      '<linearGradient id="lineGrad" x1="0" y1="0" x2="1" y2="0">' +
+        '<stop offset="0%" stop-color="#22d3ee"/>' +
+        '<stop offset="100%" stop-color="#14b8a6"/>' +
+      '</linearGradient>' +
+    '</defs>' +
     gridLines.join('') +
-    `<path d="${areaPath}" fill="url(#areaGrad)"/>` +
-    `<path d="${linePath}" fill="none" stroke="url(#lineGrad)" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>` +
+    '<path d="' + areaPath + '" fill="url(#areaGrad)"/>' +
+    '<path d="' + linePath + '" fill="none" stroke="url(#lineGrad)" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>' +
     dots +
     xLabels.join('');
 }
+
+// Wire up range pills
+document.getElementById('rangePills').addEventListener('click', (e) => {
+  if (!e.target.classList.contains('range-pill')) return;
+  document.querySelectorAll('.range-pill').forEach(p => p.classList.remove('active'));
+  e.target.classList.add('active');
+  drawChart(e.target.dataset.range);
+});
+
+// Initial draw
+drawChart('all');
 </script>
 </body>
 </html>
