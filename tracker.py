@@ -731,7 +731,6 @@ def build_html(rows: list, meta: dict) -> str:
     <div class="stat">
       <div class="stat-label">Engagement Rate</div>
       <div class="stat-value">{engagement_str}</div>
-      <div class="benchmark-pill {'below' if engagement_label == 'below benchmark' else 'at' if engagement_label == 'at benchmark' else 'above' if engagement_label == 'above benchmark' else ''}">{engagement_label}</div>
     </div>
   </div>
 
