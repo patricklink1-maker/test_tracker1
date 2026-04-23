@@ -13,7 +13,7 @@ from urllib.parse import urlparse, parse_qs
 import requests
 
 # -------- CONFIG --------
-VIDEO_URL = "https://www.youtube.com/watch?v=6IxPD-jNdwM"
+VIDEO_URL = "https://www.youtube.com/watch?v=5xQ2LZCknfc"
 CURRENT_TITLE = "Clayface (2026)"
 OUTPUT_CSV = "view_counts.csv"
 OUTPUT_HTML = "index.html"
@@ -197,7 +197,6 @@ def build_html(rows: list) -> str:
     h_plus = derived["h_plus"] if derived["h_plus"] is not None else 0
     readings_count = len(rows)
 
-    # Minutes until next top-of-hour reading
     now_min = datetime.now(timezone.utc).minute
     next_reading_min = 60 - now_min if now_min > 0 else 60
 
@@ -209,7 +208,7 @@ def build_html(rows: list) -> str:
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Trailer Watch — {CURRENT_TITLE}</title>
+<title>Velocity72 — {CURRENT_TITLE}</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500;600&family=Manrope:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
@@ -260,7 +259,6 @@ def build_html(rows: list) -> str:
     padding: 3rem 2rem 4rem;
   }}
 
-  /* Header */
   .header {{
     display: flex;
     justify-content: space-between;
@@ -342,7 +340,6 @@ def build_html(rows: list) -> str:
   }}
   .header-meta-row strong {{ color: var(--text-dim); font-weight: 500; }}
 
-  /* Title block */
   .title-block {{
     margin-bottom: 2rem;
   }}
@@ -390,7 +387,6 @@ def build_html(rows: list) -> str:
     letter-spacing: -0.01em;
   }}
 
-  /* Stats grid */
   .stats {{
     display: grid;
     grid-template-columns: 2fr 1fr 1fr;
@@ -446,7 +442,6 @@ def build_html(rows: list) -> str:
   .stat:not(.hero) .stat-value {{
     font-size: 1.75rem;
   }}
-  /* Gradient signals on specific stats */
   .stat-value.grad-violet {{
     background: linear-gradient(90deg, var(--violet) 0%, var(--pink) 100%);
     -webkit-background-clip: text;
@@ -467,7 +462,6 @@ def build_html(rows: list) -> str:
     letter-spacing: 0.05em;
   }}
 
-  /* Chart */
   .chart-card {{
     background: var(--bg-card);
     border: 1px solid var(--border);
@@ -508,7 +502,6 @@ def build_html(rows: list) -> str:
   }}
   svg#chart {{ display: block; width: 100%; height: 320px; }}
 
-  /* Table */
   .table-card {{
     background: var(--bg-card);
     border: 1px solid var(--border);
@@ -557,7 +550,6 @@ def build_html(rows: list) -> str:
   .ttime {{ color: var(--text-faint); font-size: 0.75rem; }}
   .empty {{ text-align: center; color: var(--text-faint); padding: 2.5rem; font-style: italic; }}
 
-  /* Footer */
   .footer {{
     margin-top: 3rem;
     padding-top: 1.5rem;
@@ -594,7 +586,7 @@ def build_html(rows: list) -> str:
   </div>
 
   <div class="title-block">
-    <h1 class="product-title">Trailer Watch</h1>
+    <h1 class="product-title">Velocity72</h1>
     <p class="product-subtitle">Tracking the first 72 hours of trailer drop</p>
     <div class="current-title-row">
       <span class="current-title-label">Current Title</span>
@@ -757,7 +749,24 @@ if (points.length < 2) {{
 
 
 def main():
-    now_utc = datetime.now(timezone.utc).isoformat(timespec="seconds")
+    now_utc_dt = datetime.now(timezone.utc)
+    now_utc = now_utc_dt.isoformat(timespec="seconds")
+
+    # If the last reading was less than 40 minutes ago, skip this run.
+    # Prevents the :45 backup cron from duplicating the :30 primary reading.
+    existing = read_rows(OUTPUT_CSV)
+    if existing:
+        try:
+            last_ts = datetime.fromisoformat(existing[-1]["timestamp_utc"])
+            mins_since_last = (now_utc_dt - last_ts).total_seconds() / 60
+            if mins_since_last < 40:
+                print(f"SKIP  {now_utc}  last reading was {mins_since_last:.0f}m ago (<40m)")
+                with open(OUTPUT_HTML, "w", encoding="utf-8") as f:
+                    f.write(build_html(existing))
+                return
+        except (ValueError, KeyError):
+            pass
+
     try:
         stats = fetch_stats(VIDEO_URL)
         row = {
