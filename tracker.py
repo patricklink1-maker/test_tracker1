@@ -13,7 +13,7 @@ from urllib.parse import urlparse, parse_qs
 import requests
 
 # -------- CONFIG --------
-VIDEO_URL = "https://www.youtube.com/watch?v=5xQ2LZCknfc"
+VIDEO_URL = "https://www.youtube.com/watch?v=6IxPD-jNdwM"
 CURRENT_TITLE = "Clayface (2026)"
 OUTPUT_CSV = "view_counts.csv"
 OUTPUT_HTML = "index.html"
@@ -208,7 +208,7 @@ def build_html(rows: list) -> str:
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Velocity72 — {CURRENT_TITLE}</title>
+<title>Trailer Watch — {CURRENT_TITLE}</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500;600&family=Manrope:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
@@ -586,7 +586,7 @@ def build_html(rows: list) -> str:
   </div>
 
   <div class="title-block">
-    <h1 class="product-title">Velocity72</h1>
+    <h1 class="product-title">Trailer Watch</h1>
     <p class="product-subtitle">Tracking the first 72 hours of trailer drop</p>
     <div class="current-title-row">
       <span class="current-title-label">Current Title</span>
