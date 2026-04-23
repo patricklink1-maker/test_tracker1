@@ -15,6 +15,8 @@ import requests
 # -------- CONFIG --------
 VIDEO_URL = "https://www.youtube.com/watch?v=6IxPD-jNdwM"
 CURRENT_TITLE = "Clayface (2026)"
+PRODUCT_TITLE = "Trailer Watch"
+PRODUCT_SUBTITLE = "Tracking the first 72 hours of trailer drop"
 OUTPUT_CSV = "view_counts.csv"
 OUTPUT_HTML = "index.html"
 # ------------------------
@@ -39,7 +41,7 @@ def fetch_stats(video_url: str) -> dict:
     video_id = extract_video_id(video_url)
     r = requests.get(
         "https://www.googleapis.com/youtube/v3/videos",
-        params={"part": "statistics,snippet", "id": video_id, "key": API_KEY},
+        params={"part": "statistics,snippet,contentDetails", "id": video_id, "key": API_KEY},
         timeout=30,
     )
     r.raise_for_status()
@@ -54,6 +56,8 @@ def fetch_stats(video_url: str) -> dict:
         "like_count": int(stats.get("likeCount", 0)) if "likeCount" in stats else None,
         "comment_count": int(stats.get("commentCount", 0)) if "commentCount" in stats else None,
         "title": snippet.get("title", ""),
+        "channel": snippet.get("channelTitle", ""),
+        "published_at": snippet.get("publishedAt", ""),
     }
 
 
@@ -100,7 +104,7 @@ def compute_derived(rows: list) -> dict:
     stats = {
         "latest_views": None, "latest_likes": None, "latest_comments": None,
         "last_delta": None, "avg_per_hour": None, "peak_per_hour": None,
-        "hours_elapsed": None, "h_plus": None,
+        "hours_elapsed": None, "h_plus": None, "engagement_rate": None,
     }
     if not valid:
         return stats
@@ -109,6 +113,10 @@ def compute_derived(rows: list) -> dict:
     stats["latest_views"] = latest["v"]
     stats["latest_likes"] = latest["l"]
     stats["latest_comments"] = latest["c"]
+
+    # Engagement rate = (likes + comments) / views * 100
+    if latest["v"] and latest["l"] is not None and latest["c"] is not None and latest["v"] > 0:
+        stats["engagement_rate"] = round(((latest["l"] + latest["c"]) / latest["v"]) * 100, 2)
 
     if len(valid) >= 1:
         first = valid[0]
@@ -145,9 +153,27 @@ def fmt_signed(n):
     return f"{'+' if n >= 0 else ''}{n:,}"
 
 
-def build_html(rows: list) -> str:
+def compute_next_run_minutes():
+    """Next scheduled cron is :30 or :45 of each hour (primary + backup)."""
+    now = datetime.now(timezone.utc)
+    m = now.minute
+    if m < 30:
+        return 30 - m
+    elif m < 45:
+        return 45 - m
+    else:
+        return (60 - m) + 30  # wrap to next hour's :30
+
+
+def build_html(rows: list, meta: dict) -> str:
     derived = compute_derived(rows)
-    yt_title = rows[-1].get("title", "") if rows else ""
+    video_id = extract_video_id(VIDEO_URL)
+    thumbnail_url = f"https://img.youtube.com/vi/{video_id}/maxresdefault.jpg"
+    fallback_thumb = f"https://img.youtube.com/vi/{video_id}/hqdefault.jpg"
+
+    channel = meta.get("channel", "")
+    published_at = meta.get("published_at", "")
+    yt_title = meta.get("title", "") or (rows[-1].get("title", "") if rows else "")
 
     prev_v = None
     trs = []
@@ -166,7 +192,13 @@ def build_html(rows: list) -> str:
             delta_str = "—"
         if v is not None:
             prev_v = v
-            chart_points.append({"i": i - 1, "v": v, "t": r.get("timestamp_utc", "")})
+            chart_points.append({
+                "i": i - 1,
+                "v": v,
+                "l": l or 0,
+                "c": c or 0,
+                "t": r.get("timestamp_utc", ""),
+            })
 
         ts = r.get("timestamp_utc", "")
         try:
@@ -193,22 +225,41 @@ def build_html(rows: list) -> str:
     last_delta_str = fmt_signed(derived["last_delta"])
     avg_str = fmt_signed(derived["avg_per_hour"])
     peak_str = fmt_num(derived["peak_per_hour"])
-    hours_elapsed = derived["hours_elapsed"] if derived["hours_elapsed"] is not None else 0
+    engagement_rate = derived["engagement_rate"]
+    engagement_str = f"{engagement_rate}%" if engagement_rate is not None else "—"
+
+    # Engagement benchmark label
+    if engagement_rate is None:
+        engagement_label = "—"
+    elif engagement_rate < 1.5:
+        engagement_label = "below benchmark"
+    elif engagement_rate < 3.0:
+        engagement_label = "at benchmark"
+    else:
+        engagement_label = "above benchmark"
+
     h_plus = derived["h_plus"] if derived["h_plus"] is not None else 0
     readings_count = len(rows)
-
-    now_min = datetime.now(timezone.utc).minute
-    next_reading_min = 60 - now_min if now_min > 0 else 60
+    next_reading_min = compute_next_run_minutes()
 
     latest_ts = rows[-1]["timestamp_utc"] if rows else ""
     first_ts = rows[0]["timestamp_utc"] if rows else ""
+
+    # Format published date
+    pub_display = ""
+    if published_at:
+        try:
+            pub_dt = datetime.fromisoformat(published_at.replace("Z", "+00:00"))
+            pub_display = pub_dt.strftime("%b ") + str(pub_dt.day) + pub_dt.strftime(", %Y · %H:%M UTC")
+        except Exception:
+            pub_display = published_at
 
     return f"""<!doctype html>
 <html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Trailer Watch — {CURRENT_TITLE}</title>
+<title>{PRODUCT_TITLE} — {CURRENT_TITLE}</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500;600&family=Manrope:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
@@ -235,10 +286,8 @@ def build_html(rows: list) -> str:
   * {{ box-sizing: border-box; }}
 
   html, body {{
-    margin: 0;
-    padding: 0;
-    background: var(--bg);
-    color: var(--text);
+    margin: 0; padding: 0;
+    background: var(--bg); color: var(--text);
     font-family: 'Manrope', -apple-system, sans-serif;
     font-weight: 400;
     -webkit-font-smoothing: antialiased;
@@ -260,24 +309,14 @@ def build_html(rows: list) -> str:
   }}
 
   .header {{
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
+    display: flex; justify-content: space-between; align-items: center;
     border-bottom: 1px solid var(--border);
-    padding-bottom: 1.5rem;
-    margin-bottom: 2rem;
-    flex-wrap: wrap;
-    gap: 1.5rem;
+    padding-bottom: 1.5rem; margin-bottom: 2rem;
+    flex-wrap: wrap; gap: 1.5rem;
   }}
-  .brand {{
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-  }}
+  .brand {{ display: flex; align-items: center; gap: 0.75rem; }}
   .brand-dot {{
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
+    width: 8px; height: 8px; border-radius: 50%;
     background: var(--cyan);
     box-shadow: 0 0 14px var(--cyan);
     animation: pulse 2s ease-in-out infinite;
@@ -288,180 +327,233 @@ def build_html(rows: list) -> str:
   }}
   .brand-label {{
     font-family: 'IBM Plex Mono', monospace;
-    font-size: 0.75rem;
-    font-weight: 500;
-    letter-spacing: 0.2em;
-    text-transform: uppercase;
+    font-size: 0.75rem; font-weight: 500;
+    letter-spacing: 0.2em; text-transform: uppercase;
     color: var(--text-dim);
   }}
-  .header-cluster {{
-    display: flex;
-    align-items: center;
-    gap: 2rem;
-  }}
-  .h-plus {{
-    display: flex;
-    flex-direction: column;
-    align-items: flex-end;
-    line-height: 1;
-  }}
+  .header-cluster {{ display: flex; align-items: center; gap: 2rem; }}
+  .h-plus {{ display: flex; flex-direction: column; align-items: flex-end; line-height: 1; }}
   .h-plus-value {{
     font-family: 'Manrope', sans-serif;
-    font-weight: 800;
-    font-size: 2rem;
-    letter-spacing: -0.03em;
-    line-height: 1;
+    font-weight: 800; font-size: 2rem;
+    letter-spacing: -0.03em; line-height: 1;
     background: linear-gradient(90deg, var(--cyan), var(--teal));
-    -webkit-background-clip: text;
-    background-clip: text;
+    -webkit-background-clip: text; background-clip: text;
     -webkit-text-fill-color: transparent;
     font-variant-numeric: tabular-nums;
   }}
   .h-plus-label {{
     font-family: 'IBM Plex Mono', monospace;
-    font-size: 0.6rem;
-    letter-spacing: 0.2em;
-    text-transform: uppercase;
-    color: var(--text-faint);
-    margin-top: 0.25rem;
+    font-size: 0.6rem; letter-spacing: 0.2em; text-transform: uppercase;
+    color: var(--text-faint); margin-top: 0.25rem;
   }}
-  .header-meta {{
-    display: flex;
-    flex-direction: column;
-    gap: 0.15rem;
-    align-items: flex-end;
-  }}
+  .header-meta {{ display: flex; flex-direction: column; gap: 0.15rem; align-items: flex-end; }}
   .header-meta-row {{
     font-family: 'IBM Plex Mono', monospace;
-    font-size: 0.7rem;
-    color: var(--text-faint);
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
+    font-size: 0.7rem; color: var(--text-faint);
+    letter-spacing: 0.1em; text-transform: uppercase;
   }}
   .header-meta-row strong {{ color: var(--text-dim); font-weight: 500; }}
 
-  .title-block {{
-    margin-bottom: 2rem;
-  }}
+  /* Title block */
+  .title-block {{ margin-bottom: 2rem; }}
   h1.product-title {{
     font-family: 'Manrope', sans-serif;
     font-size: clamp(2.25rem, 5.5vw, 3.5rem);
-    font-weight: 800;
-    margin: 0 0 0.4rem 0;
-    letter-spacing: -0.04em;
-    line-height: 1;
+    font-weight: 800; margin: 0 0 0.4rem 0;
+    letter-spacing: -0.04em; line-height: 1;
     background: linear-gradient(90deg, var(--cyan) 0%, var(--teal) 100%);
-    -webkit-background-clip: text;
-    background-clip: text;
+    -webkit-background-clip: text; background-clip: text;
     -webkit-text-fill-color: transparent;
   }}
   .product-subtitle {{
     font-family: 'Manrope', sans-serif;
     font-size: clamp(0.95rem, 1.6vw, 1.1rem);
-    color: var(--text-dim);
-    font-weight: 400;
-    margin: 0 0 1.75rem 0;
-    letter-spacing: -0.01em;
+    color: var(--text-dim); font-weight: 400;
+    margin: 0 0 1.75rem 0; letter-spacing: -0.01em;
   }}
-  .current-title-row {{
-    display: inline-flex;
-    align-items: center;
-    gap: 0.75rem;
-    padding: 0.6rem 1rem;
+
+  /* Trailer card */
+  .trailer-card {{
+    display: grid;
+    grid-template-columns: 280px 1fr;
+    gap: 1.5rem;
     background: var(--bg-card);
     border: 1px solid var(--border);
-    border-radius: 6px;
+    border-radius: 8px;
+    overflow: hidden;
+    margin-bottom: 2.5rem;
   }}
-  .current-title-label {{
+  @media (max-width: 720px) {{
+    .trailer-card {{ grid-template-columns: 1fr; }}
+  }}
+  .trailer-thumb {{
+    position: relative;
+    aspect-ratio: 16 / 9;
+    overflow: hidden;
+    background: var(--bg-elev);
+  }}
+  .trailer-thumb img {{
+    width: 100%; height: 100%; object-fit: cover;
+    display: block; transition: transform 0.4s ease;
+  }}
+  .trailer-thumb:hover img {{ transform: scale(1.03); }}
+  .trailer-thumb::after {{
+    content: ''; position: absolute; inset: 0;
+    background: linear-gradient(135deg, transparent 60%, rgba(0,0,0,0.4));
+    pointer-events: none;
+  }}
+  .live-badge {{
+    position: absolute; top: 0.75rem; left: 0.75rem;
+    display: inline-flex; align-items: center; gap: 0.4rem;
+    padding: 0.3rem 0.6rem;
+    background: rgba(7, 9, 12, 0.85);
+    backdrop-filter: blur(8px);
+    border: 1px solid var(--cyan);
+    border-radius: 3px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.65rem;
+    font-weight: 600;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--cyan);
+    z-index: 2;
+  }}
+  .live-badge-dot {{
+    width: 6px; height: 6px; border-radius: 50%;
+    background: var(--cyan);
+    box-shadow: 0 0 8px var(--cyan);
+    animation: pulse 1.6s ease-in-out infinite;
+  }}
+  .trailer-info {{
+    padding: 1.5rem 1.5rem 1.5rem 0;
+    display: flex; flex-direction: column;
+    justify-content: space-between;
+    min-width: 0;
+  }}
+  @media (max-width: 720px) {{
+    .trailer-info {{ padding: 0 1.5rem 1.5rem; }}
+  }}
+  .trailer-eyebrow {{
     font-family: 'IBM Plex Mono', monospace;
     font-size: 0.65rem;
     letter-spacing: 0.2em;
     text-transform: uppercase;
     color: var(--text-faint);
+    margin-bottom: 0.5rem;
   }}
-  .current-title-value {{
+  .trailer-title {{
     font-family: 'Manrope', sans-serif;
-    font-size: 1rem;
-    font-weight: 600;
+    font-size: 1.35rem;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    line-height: 1.2;
     color: var(--text);
-    letter-spacing: -0.01em;
+    margin: 0 0 0.5rem 0;
+  }}
+  .trailer-channel {{
+    font-family: 'Manrope', sans-serif;
+    font-size: 0.9rem;
+    color: var(--text-dim);
+    margin-bottom: 1rem;
+  }}
+  .trailer-meta {{
+    display: flex; flex-wrap: wrap; gap: 1rem;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.7rem; color: var(--text-faint);
+    letter-spacing: 0.05em;
+    margin-bottom: 1.25rem;
+    padding-bottom: 1.25rem;
+    border-bottom: 1px solid var(--border);
+  }}
+  .trailer-meta strong {{ color: var(--text-dim); font-weight: 500; }}
+  .trailer-link {{
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.75rem; font-weight: 500;
+    letter-spacing: 0.12em; text-transform: uppercase;
+    color: var(--cyan);
+    text-decoration: none;
+    align-self: flex-start;
+    padding: 0.5rem 0.9rem;
+    border: 1px solid var(--cyan);
+    border-radius: 4px;
+    background: transparent;
+    transition: all 0.15s ease;
+  }}
+  .trailer-link:hover {{
+    background: var(--accent-soft);
+    box-shadow: 0 0 16px rgba(34, 211, 238, 0.25);
   }}
 
+  /* Stats grid */
   .stats {{
-    display: grid;
-    grid-template-columns: 2fr 1fr 1fr;
-    gap: 1px;
-    background: var(--border);
+    display: grid; grid-template-columns: 2fr 1fr 1fr;
+    gap: 1px; background: var(--border);
     border: 1px solid var(--border);
     overflow: hidden;
-    margin: 2.5rem 0 0;
+    margin: 0;
     border-radius: 6px 6px 0 0;
   }}
   .stats.secondary {{
-    grid-template-columns: 1fr 1fr 1fr;
-    margin-top: 1px;
-    margin-bottom: 2.5rem;
-    border-top: none;
-    border-radius: 0 0 6px 6px;
+    grid-template-columns: 1fr 1fr 1fr 1fr;
+    margin-top: 1px; margin-bottom: 2.5rem;
+    border-top: none; border-radius: 0 0 6px 6px;
   }}
   @media (max-width: 780px) {{
-    .stats, .stats.secondary {{ grid-template-columns: 1fr 1fr; }}
+    .stats {{ grid-template-columns: 1fr 1fr; }}
+    .stats.secondary {{ grid-template-columns: 1fr 1fr; }}
   }}
-  .stat {{
-    background: var(--bg-card);
-    padding: 1.5rem;
-    position: relative;
-  }}
-  .stat.hero {{
-    background: linear-gradient(135deg, var(--bg-card), var(--bg-elev));
-  }}
+  .stat {{ background: var(--bg-card); padding: 1.5rem; position: relative; }}
+  .stat.hero {{ background: linear-gradient(135deg, var(--bg-card), var(--bg-elev)); }}
   .stat-label {{
     font-family: 'IBM Plex Mono', monospace;
-    font-size: 0.65rem;
-    font-weight: 500;
-    letter-spacing: 0.18em;
-    text-transform: uppercase;
-    color: var(--text-faint);
-    margin-bottom: 0.75rem;
+    font-size: 0.65rem; font-weight: 500;
+    letter-spacing: 0.18em; text-transform: uppercase;
+    color: var(--text-faint); margin-bottom: 0.75rem;
   }}
   .stat-value {{
     font-family: 'Manrope', sans-serif;
     font-weight: 800;
     font-variant-numeric: tabular-nums;
     letter-spacing: -0.04em;
-    line-height: 1;
-    color: var(--text);
+    line-height: 1; color: var(--text);
   }}
   .stat.hero .stat-value {{
     font-size: clamp(2.75rem, 6.5vw, 4rem);
     background: linear-gradient(90deg, var(--cyan) 0%, var(--teal) 100%);
-    -webkit-background-clip: text;
-    background-clip: text;
+    -webkit-background-clip: text; background-clip: text;
     -webkit-text-fill-color: transparent;
   }}
-  .stat:not(.hero) .stat-value {{
-    font-size: 1.75rem;
-  }}
+  .stat:not(.hero) .stat-value {{ font-size: 1.5rem; }}
   .stat-value.grad-violet {{
     background: linear-gradient(90deg, var(--violet) 0%, var(--pink) 100%);
-    -webkit-background-clip: text;
-    background-clip: text;
+    -webkit-background-clip: text; background-clip: text;
     -webkit-text-fill-color: transparent;
   }}
   .stat-value.grad-amber {{
     background: linear-gradient(90deg, var(--amber) 0%, var(--orange) 100%);
-    -webkit-background-clip: text;
-    background-clip: text;
+    -webkit-background-clip: text; background-clip: text;
     -webkit-text-fill-color: transparent;
   }}
   .stat-sub {{
     font-family: 'IBM Plex Mono', monospace;
-    font-size: 0.7rem;
-    color: var(--text-dim);
-    margin-top: 0.6rem;
-    letter-spacing: 0.05em;
+    font-size: 0.7rem; color: var(--text-dim);
+    margin-top: 0.6rem; letter-spacing: 0.05em;
   }}
+  .benchmark-pill {{
+    display: inline-block;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.6rem; font-weight: 600;
+    letter-spacing: 0.15em; text-transform: uppercase;
+    padding: 0.2rem 0.5rem;
+    border-radius: 3px;
+    margin-top: 0.6rem;
+  }}
+  .benchmark-pill.below {{ color: var(--orange); background: rgba(249, 115, 22, 0.12); }}
+  .benchmark-pill.at {{ color: var(--amber); background: rgba(251, 191, 36, 0.12); }}
+  .benchmark-pill.above {{ color: var(--positive); background: rgba(74, 222, 128, 0.12); }}
 
+  /* Chart */
   .chart-card {{
     background: var(--bg-card);
     border: 1px solid var(--border);
@@ -470,69 +562,66 @@ def build_html(rows: list) -> str:
     margin-bottom: 2.5rem;
   }}
   .chart-head {{
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 1rem;
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 1rem; flex-wrap: wrap; gap: 0.75rem;
   }}
   .chart-title {{
     font-family: 'IBM Plex Mono', monospace;
-    font-size: 0.7rem;
-    letter-spacing: 0.18em;
-    text-transform: uppercase;
-    color: var(--text-dim);
+    font-size: 0.7rem; letter-spacing: 0.18em;
+    text-transform: uppercase; color: var(--text-dim);
   }}
+  .chart-controls {{ display: flex; gap: 0.4rem; align-items: center; flex-wrap: wrap; }}
+  .range-pills {{ display: flex; gap: 0; background: var(--bg-elev); border: 1px solid var(--border); border-radius: 4px; overflow: hidden; }}
+  .range-pill {{
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.7rem; letter-spacing: 0.1em;
+    text-transform: uppercase; color: var(--text-dim);
+    background: transparent; border: none;
+    padding: 0.4rem 0.8rem; cursor: pointer;
+    transition: all 0.15s ease;
+  }}
+  .range-pill:not(:last-child) {{ border-right: 1px solid var(--border); }}
+  .range-pill:hover {{ color: var(--text); background: rgba(34,211,238,0.06); }}
+  .range-pill.active {{ color: var(--cyan); background: var(--accent-soft); }}
   .chart-actions a {{
     font-family: 'IBM Plex Mono', monospace;
-    font-size: 0.7rem;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
-    color: var(--text-dim);
+    font-size: 0.7rem; letter-spacing: 0.12em;
+    text-transform: uppercase; color: var(--text-dim);
     text-decoration: none;
     padding: 0.4rem 0.75rem;
     border: 1px solid var(--border);
-    border-radius: 4px;
-    margin-left: 0.5rem;
+    border-radius: 4px; margin-left: 0.5rem;
     transition: all 0.15s ease;
   }}
   .chart-actions a:hover {{
-    color: var(--cyan);
-    border-color: var(--cyan);
+    color: var(--cyan); border-color: var(--cyan);
     background: var(--accent-soft);
   }}
   svg#chart {{ display: block; width: 100%; height: 320px; }}
 
+  /* Table */
   .table-card {{
     background: var(--bg-card);
     border: 1px solid var(--border);
-    border-radius: 6px;
-    overflow: hidden;
+    border-radius: 6px; overflow: hidden;
   }}
   .table-head {{
     padding: 1.25rem 1.5rem;
     border-bottom: 1px solid var(--border);
     font-family: 'IBM Plex Mono', monospace;
-    font-size: 0.7rem;
-    letter-spacing: 0.18em;
-    text-transform: uppercase;
-    color: var(--text-dim);
+    font-size: 0.7rem; letter-spacing: 0.18em;
+    text-transform: uppercase; color: var(--text-dim);
   }}
-  table {{
-    width: 100%;
-    border-collapse: collapse;
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 0.85rem;
-  }}
+  .table-scroll {{ max-height: 540px; overflow-y: auto; }}
+  table {{ width: 100%; border-collapse: collapse; font-family: 'IBM Plex Mono', monospace; font-size: 0.85rem; }}
   th {{
-    text-align: left;
-    padding: 0.75rem 1.5rem;
-    font-weight: 500;
-    font-size: 0.7rem;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
+    text-align: left; padding: 0.75rem 1.5rem;
+    font-weight: 500; font-size: 0.7rem;
+    letter-spacing: 0.12em; text-transform: uppercase;
     color: var(--text-faint);
     border-bottom: 1px solid var(--border);
     background: var(--bg-elev);
+    position: sticky; top: 0; z-index: 1;
   }}
   td {{
     padding: 0.9rem 1.5rem;
@@ -551,16 +640,12 @@ def build_html(rows: list) -> str:
   .empty {{ text-align: center; color: var(--text-faint); padding: 2.5rem; font-style: italic; }}
 
   .footer {{
-    margin-top: 3rem;
-    padding-top: 1.5rem;
+    margin-top: 3rem; padding-top: 1.5rem;
     border-top: 1px solid var(--border);
-    display: flex;
-    justify-content: space-between;
-    flex-wrap: wrap;
-    gap: 0.5rem;
+    display: flex; justify-content: space-between;
+    flex-wrap: wrap; gap: 0.5rem;
     font-family: 'IBM Plex Mono', monospace;
-    font-size: 0.7rem;
-    color: var(--text-faint);
+    font-size: 0.7rem; color: var(--text-faint);
     letter-spacing: 0.05em;
   }}
 </style>
@@ -576,7 +661,7 @@ def build_html(rows: list) -> str:
     <div class="header-cluster">
       <div class="header-meta">
         <span class="header-meta-row"><strong>{readings_count}</strong> readings logged</span>
-        <span class="header-meta-row">next reading in <strong>{next_reading_min}m</strong></span>
+        <span class="header-meta-row">next reading in <strong>~{next_reading_min}m</strong></span>
       </div>
       <div class="h-plus">
         <span class="h-plus-value">H+{h_plus:02d}</span>
@@ -586,11 +671,26 @@ def build_html(rows: list) -> str:
   </div>
 
   <div class="title-block">
-    <h1 class="product-title">Trailer Watch</h1>
-    <p class="product-subtitle">Tracking the first 72 hours of trailer drop</p>
-    <div class="current-title-row">
-      <span class="current-title-label">Current Title</span>
-      <span class="current-title-value">{CURRENT_TITLE}</span>
+    <h1 class="product-title">{PRODUCT_TITLE}</h1>
+    <p class="product-subtitle">{PRODUCT_SUBTITLE}</p>
+  </div>
+
+  <div class="trailer-card">
+    <a class="trailer-thumb" href="{VIDEO_URL}" target="_blank" rel="noopener">
+      <span class="live-badge"><span class="live-badge-dot"></span>Live Tracking</span>
+      <img src="{thumbnail_url}" onerror="this.onerror=null;this.src='{fallback_thumb}'" alt="Trailer thumbnail">
+    </a>
+    <div class="trailer-info">
+      <div>
+        <div class="trailer-eyebrow">Currently Tracking</div>
+        <h2 class="trailer-title">{CURRENT_TITLE}</h2>
+        <div class="trailer-channel">{yt_title}{f' · {channel}' if channel else ''}</div>
+      </div>
+      <div class="trailer-meta">
+        <span><strong>Published</strong> · {pub_display or '—'}</span>
+        <span><strong>Tracking since</strong> · {first_ts[:16].replace('T', ' ') if first_ts else '—'} UTC</span>
+      </div>
+      <a class="trailer-link" href="{VIDEO_URL}" target="_blank" rel="noopener">Watch on YouTube ↗</a>
     </div>
   </div>
 
@@ -628,14 +728,26 @@ def build_html(rows: list) -> str:
       <div class="stat-value grad-amber">{peak_str}</div>
       <div class="stat-sub">highest hourly velocity</div>
     </div>
+    <div class="stat">
+      <div class="stat-label">Engagement Rate</div>
+      <div class="stat-value">{engagement_str}</div>
+      <div class="benchmark-pill {'below' if engagement_label == 'below benchmark' else 'at' if engagement_label == 'at benchmark' else 'above' if engagement_label == 'above benchmark' else ''}">{engagement_label}</div>
+    </div>
   </div>
 
   <div class="chart-card">
     <div class="chart-head">
       <div class="chart-title">Cumulative Views</div>
-      <div class="chart-actions">
-        <a href="view_counts.csv" download>Download CSV</a>
-        <a href=".">Refresh</a>
+      <div class="chart-controls">
+        <div class="range-pills" id="rangePills">
+          <button class="range-pill" data-range="6">Last 6h</button>
+          <button class="range-pill" data-range="24">Last 24h</button>
+          <button class="range-pill active" data-range="all">All Time</button>
+        </div>
+        <span class="chart-actions">
+          <a href="view_counts.csv" download>CSV</a>
+          <a href=".">Refresh</a>
+        </span>
       </div>
     </div>
     <svg id="chart" viewBox="0 0 1100 320" preserveAspectRatio="none"></svg>
@@ -643,6 +755,7 @@ def build_html(rows: list) -> str:
 
   <div class="table-card">
     <div class="table-head">Reading Log</div>
+    <div class="table-scroll">
     <table>
       <thead>
         <tr>
@@ -658,6 +771,7 @@ def build_html(rows: list) -> str:
         {table_rows}
       </tbody>
     </table>
+    </div>
   </div>
 
   <div class="footer">
@@ -668,14 +782,27 @@ def build_html(rows: list) -> str:
 </div>
 
 <script>
-const points = {chart_data_json};
-const svg = document.getElementById('chart');
+const allPoints = {chart_data_json};
 
-if (points.length < 2) {{
-  svg.innerHTML = '<text x="50%" y="50%" text-anchor="middle" fill="#5a6676" font-family="IBM Plex Mono, monospace" font-size="12" letter-spacing="2">AWAITING SECOND READING</text>';
-}} else {{
-  const W = 1100, H = 320, padL = 70, padR = 20, padT = 20, padB = 40;
-  const maxI = Math.max(...points.map(p => p.i));
+function drawChart(rangeHours) {{
+  const svg = document.getElementById('chart');
+  let points;
+  if (rangeHours === 'all') {{
+    points = allPoints;
+  }} else {{
+    const maxH = allPoints.length - 1;
+    const cutoff = maxH - parseInt(rangeHours, 10);
+    points = allPoints.filter(p => p.i >= cutoff);
+  }}
+
+  if (points.length < 2) {{
+    svg.innerHTML = '<text x="50%" y="50%" text-anchor="middle" fill="#5a6676" font-family="IBM Plex Mono, monospace" font-size="12" letter-spacing="2">NOT ENOUGH DATA IN THIS RANGE</text>';
+    return;
+  }}
+
+  const W = 1100, H = 320, padL = 75, padR = 20, padT = 20, padB = 40;
+  const minI = points[0].i;
+  const maxI = points[points.length - 1].i;
   const maxV = Math.max(...points.map(p => p.v));
   const minV = Math.min(...points.map(p => p.v));
   const range = Math.max(1, maxV - minV);
@@ -684,7 +811,7 @@ if (points.length < 2) {{
   const yMax = maxV + padY;
   const yRange = Math.max(1, yMax - yMin);
 
-  const xScale = i => padL + (i / Math.max(1, maxI)) * (W - padL - padR);
+  const xScale = i => padL + ((i - minI) / Math.max(1, maxI - minI)) * (W - padL - padR);
   const yScale = v => (H - padB) - ((v - yMin) / yRange) * (H - padT - padB);
 
   const gridLines = [];
@@ -693,21 +820,22 @@ if (points.length < 2) {{
     const y = padT + (g / gridCount) * (H - padT - padB);
     const val = Math.round(yMax - (g / gridCount) * yRange);
     gridLines.push(
-      `<line x1="${{padL}}" y1="${{y}}" x2="${{W - padR}}" y2="${{y}}" stroke="#1c2430" stroke-width="1"/>` +
-      `<text x="${{padL - 12}}" y="${{y + 4}}" text-anchor="end" fill="#5a6676" font-family="IBM Plex Mono, monospace" font-size="10">${{val.toLocaleString()}}</text>`
+      '<line x1="' + padL + '" y1="' + y + '" x2="' + (W - padR) + '" y2="' + y + '" stroke="#1c2430" stroke-width="1"/>' +
+      '<text x="' + (padL - 12) + '" y="' + (y + 4) + '" text-anchor="end" fill="#5a6676" font-family="IBM Plex Mono, monospace" font-size="10">' + val.toLocaleString() + '</text>'
     );
   }}
 
+  // Smart x-axis labels: show at most 6 labels, spread evenly
   const xLabels = [];
   const xLabelCount = Math.min(points.length, 6);
   for (let xi = 0; xi < xLabelCount; xi++) {{
-    const idx = Math.round((xi / Math.max(1, xLabelCount - 1)) * maxI);
+    const idx = Math.round((xi / Math.max(1, xLabelCount - 1)) * (points.length - 1));
     const p = points[idx];
     if (!p) continue;
     const x = xScale(p.i);
     const label = 'H+' + String(p.i).padStart(2, '0');
     xLabels.push(
-      `<text x="${{x}}" y="${{H - padB + 20}}" text-anchor="middle" fill="#5a6676" font-family="IBM Plex Mono, monospace" font-size="10">${{label}}</text>`
+      '<text x="' + x + '" y="' + (H - padB + 20) + '" text-anchor="middle" fill="#5a6676" font-family="IBM Plex Mono, monospace" font-size="10">' + label + '</text>'
     );
   }}
 
@@ -720,28 +848,41 @@ if (points.length < 2) {{
     linePath += (idx === 0 ? 'M' : 'L') + xScale(p.i) + ' ' + yScale(p.v) + ' ';
   }});
 
+  // Scale dot size based on density
+  const dotR = points.length > 30 ? 2.5 : points.length > 15 ? 3 : 3.5;
   const dots = points.map(p =>
-    `<circle cx="${{xScale(p.i)}}" cy="${{yScale(p.v)}}" r="3.5" fill="#07090c" stroke="#22d3ee" stroke-width="2">` +
-    `<title>${{p.t}} — ${{p.v.toLocaleString()}} views</title></circle>`
+    '<circle cx="' + xScale(p.i) + '" cy="' + yScale(p.v) + '" r="' + dotR + '" fill="#07090c" stroke="#22d3ee" stroke-width="2">' +
+    '<title>H+' + p.i + ' · ' + p.v.toLocaleString() + ' views · ' + p.t + '</title></circle>'
   ).join('');
 
   svg.innerHTML =
-    `<defs>
-      <linearGradient id="areaGrad" x1="0" y1="0" x2="0" y2="1">
-        <stop offset="0%" stop-color="#22d3ee" stop-opacity="0.28"/>
-        <stop offset="100%" stop-color="#14b8a6" stop-opacity="0"/>
-      </linearGradient>
-      <linearGradient id="lineGrad" x1="0" y1="0" x2="1" y2="0">
-        <stop offset="0%" stop-color="#22d3ee"/>
-        <stop offset="100%" stop-color="#14b8a6"/>
-      </linearGradient>
-    </defs>` +
+    '<defs>' +
+      '<linearGradient id="areaGrad" x1="0" y1="0" x2="0" y2="1">' +
+        '<stop offset="0%" stop-color="#22d3ee" stop-opacity="0.28"/>' +
+        '<stop offset="100%" stop-color="#14b8a6" stop-opacity="0"/>' +
+      '</linearGradient>' +
+      '<linearGradient id="lineGrad" x1="0" y1="0" x2="1" y2="0">' +
+        '<stop offset="0%" stop-color="#22d3ee"/>' +
+        '<stop offset="100%" stop-color="#14b8a6"/>' +
+      '</linearGradient>' +
+    '</defs>' +
     gridLines.join('') +
-    `<path d="${{areaPath}}" fill="url(#areaGrad)"/>` +
-    `<path d="${{linePath}}" fill="none" stroke="url(#lineGrad)" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>` +
+    '<path d="' + areaPath + '" fill="url(#areaGrad)"/>' +
+    '<path d="' + linePath + '" fill="none" stroke="url(#lineGrad)" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>' +
     dots +
     xLabels.join('');
 }}
+
+// Wire up range pills
+document.getElementById('rangePills').addEventListener('click', (e) => {{
+  if (!e.target.classList.contains('range-pill')) return;
+  document.querySelectorAll('.range-pill').forEach(p => p.classList.remove('active'));
+  e.target.classList.add('active');
+  drawChart(e.target.dataset.range);
+}});
+
+// Initial draw
+drawChart('all');
 </script>
 </body>
 </html>
@@ -752,8 +893,6 @@ def main():
     now_utc_dt = datetime.now(timezone.utc)
     now_utc = now_utc_dt.isoformat(timespec="seconds")
 
-    # If the last reading was less than 40 minutes ago, skip this run.
-    # Prevents the :45 backup cron from duplicating the :30 primary reading.
     existing = read_rows(OUTPUT_CSV)
     if existing:
         try:
@@ -761,8 +900,13 @@ def main():
             mins_since_last = (now_utc_dt - last_ts).total_seconds() / 60
             if mins_since_last < 40:
                 print(f"SKIP  {now_utc}  last reading was {mins_since_last:.0f}m ago (<40m)")
+                # Still regenerate HTML so dashboard gets any CSS/config updates
+                try:
+                    meta = fetch_stats(VIDEO_URL)
+                except Exception:
+                    meta = {"title": existing[-1].get("title", ""), "channel": "", "published_at": ""}
                 with open(OUTPUT_HTML, "w", encoding="utf-8") as f:
-                    f.write(build_html(existing))
+                    f.write(build_html(existing, meta))
                 return
         except (ValueError, KeyError):
             pass
@@ -778,6 +922,7 @@ def main():
         }
         append_row(OUTPUT_CSV, row)
         print(f"OK  {now_utc}  views={stats['view_count']:,}  likes={stats['like_count']}  comments={stats['comment_count']}")
+        meta = stats
     except Exception as e:
         row = {
             "timestamp_utc": now_utc, "view_count": "", "like_count": "",
@@ -785,10 +930,11 @@ def main():
         }
         append_row(OUTPUT_CSV, row)
         print(f"ERROR  {now_utc}  {e}")
+        meta = {"title": "", "channel": "", "published_at": ""}
 
     rows = read_rows(OUTPUT_CSV)
     with open(OUTPUT_HTML, "w", encoding="utf-8") as f:
-        f.write(build_html(rows))
+        f.write(build_html(rows, meta))
     print(f"Updated {OUTPUT_HTML} with {len(rows)} readings.")
 
 
