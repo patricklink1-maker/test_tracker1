@@ -1,9 +1,9 @@
 name: Hourly view tracker
 
 on:
-  schedule:
-    # Every hour
-    - cron: '0 * * * *'
+    -schedule:
+    - cron: '30 * * * *'
+    - cron: '45 * * * *'
   workflow_dispatch:
 
 permissions:
@@ -36,6 +36,8 @@ jobs:
           git add view_counts.csv index.html
           git diff --quiet --cached || git commit -m "Hourly reading: $(date -u +'%Y-%m-%d %H:%M UTC')"
           git push
+
+
 
 
 
