@@ -1,7 +1,7 @@
 name: Hourly view tracker
 
 on:
-    -schedule:
+  schedule:
     - cron: '30 * * * *'
     - cron: '45 * * * *'
   workflow_dispatch:
@@ -38,7 +38,4 @@ jobs:
           git push
 
 
-
-
-
-
+          
