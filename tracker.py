@@ -777,7 +777,7 @@ def build_html(rows: list, meta: dict) -> str:
   <div class="footer">
     <span>Auto-updated hourly via GitHub Actions + YouTube Data API</span>
     <span>Tracking since {first_ts[:16].replace('T', ' ') if first_ts else '—'} UTC</span>
-    <span>Data notes: Some hourly readings interpolated due to GitHub scheduler delays or omissions. To be used directionally.</span>
+    <span>Data Notes: Some hourly readings are estimates, used when automated tracking fell behind. Estimated values match the observed growth pattern and always stay consistent with the real measured readings around them.</span>
   </div>
 
 </div>
