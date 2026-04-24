@@ -659,11 +659,7 @@ def build_html(rows: list, meta: dict) -> str:
       <span class="brand-label">Live Tracker</span>
     </div>
     <div class="header-cluster">
-      <div class="header-meta">
-        <span class="header-meta-row"><strong>{readings_count}</strong> readings logged</span>
-        <span class="header-meta-row">next reading in <strong>~{next_reading_min}m</strong></span>
-      </div>
-      <div class="h-plus">
+         <div class="h-plus">
         <span class="h-plus-value">H+{h_plus:02d}</span>
         <span class="h-plus-label">hours since launch</span>
       </div>
