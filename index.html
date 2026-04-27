@@ -383,6 +383,118 @@
   .ttime { color: var(--text-faint); font-size: 0.75rem; }
   .empty { text-align: center; color: var(--text-faint); padding: 2.5rem; font-style: italic; }
 
+  /* Daily breakdown module */
+  .daily-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    overflow: hidden;
+    margin-bottom: 2.5rem;
+  }
+  .daily-head {
+    padding: 1.25rem 1.5rem;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+  .daily-title {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.7rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+  }
+  .daily-subtitle {
+    font-family: 'Manrope', sans-serif;
+    font-size: 0.8rem;
+    color: var(--text-faint);
+    font-style: italic;
+  }
+  .daily-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1px;
+    background: var(--border);
+  }
+  .daily-col {
+    background: var(--bg-card);
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+  }
+  .daily-col-head {
+    display: flex;
+    align-items: baseline;
+    gap: 0.5rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid var(--border);
+  }
+  .daily-col-num {
+    font-family: 'Manrope', sans-serif;
+    font-size: 1.75rem;
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    line-height: 1;
+    color: var(--text);
+  }
+  .daily-col-label {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.65rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--text-faint);
+  }
+  .daily-partial {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.55rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--amber);
+    padding: 0.15rem 0.4rem;
+    background: rgba(251, 191, 36, 0.1);
+    border-radius: 2px;
+    margin-left: auto;
+  }
+  .daily-metric {
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+  }
+  .daily-metric-label {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.6rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--text-faint);
+  }
+  .daily-metric-value {
+    font-family: 'Manrope', sans-serif;
+    font-size: 1.25rem;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    color: var(--text);
+    font-variant-numeric: tabular-nums;
+  }
+  .daily-metric-value.engagement {
+    background: linear-gradient(90deg, var(--violet) 0%, var(--pink) 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .daily-metric-trend {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.65rem;
+    letter-spacing: 0.05em;
+    color: var(--text-faint);
+    margin-top: 0.1rem;
+  }
+  .daily-metric-trend.down { color: var(--orange); }
+  .daily-metric-trend.up { color: var(--positive); }
+
   .footer {
     margin-top: 3rem; padding-top: 1.5rem;
     border-top: 1px solid var(--border);
@@ -491,6 +603,120 @@
       </div>
     </div>
     <svg id="chart" viewBox="0 0 1100 320" preserveAspectRatio="none"></svg>
+  </div>
+
+  <div class="daily-card">
+    <div class="daily-head">
+      <span class="daily-title">Daily Breakdown</span>
+      <span class="daily-subtitle">View accumulation and engagement rate by day since launch</span>
+    </div>
+    <div class="daily-grid">
+      
+          <div class="daily-col">
+            <div class="daily-col-head">
+              <span class="daily-col-num">Day 1</span>
+              
+            </div>
+            <div class="daily-metric">
+              <span class="daily-metric-label">Views Added</span>
+              <span class="daily-metric-value">+2,064,306</span>
+            </div>
+            <div class="daily-metric">
+              <span class="daily-metric-label">Avg / Hour</span>
+              <span class="daily-metric-value">86,544</span>
+            </div>
+            <div class="daily-metric">
+              <span class="daily-metric-label">Engagement Rate</span>
+              <span class="daily-metric-value engagement">6.1%</span>
+              
+            </div>
+          </div>
+        
+
+          <div class="daily-col">
+            <div class="daily-col-head">
+              <span class="daily-col-num">Day 2</span>
+              
+            </div>
+            <div class="daily-metric">
+              <span class="daily-metric-label">Views Added</span>
+              <span class="daily-metric-value">+2,054,936</span>
+            </div>
+            <div class="daily-metric">
+              <span class="daily-metric-label">Avg / Hour</span>
+              <span class="daily-metric-value">85,622</span>
+            </div>
+            <div class="daily-metric">
+              <span class="daily-metric-label">Engagement Rate</span>
+              <span class="daily-metric-value engagement">3.68%</span>
+              <div class="daily-metric-trend down">▼ 2.42pp vs Day 1</div>
+            </div>
+          </div>
+        
+
+          <div class="daily-col">
+            <div class="daily-col-head">
+              <span class="daily-col-num">Day 3</span>
+              
+            </div>
+            <div class="daily-metric">
+              <span class="daily-metric-label">Views Added</span>
+              <span class="daily-metric-value">+2,630,650</span>
+            </div>
+            <div class="daily-metric">
+              <span class="daily-metric-label">Avg / Hour</span>
+              <span class="daily-metric-value">109,610</span>
+            </div>
+            <div class="daily-metric">
+              <span class="daily-metric-label">Engagement Rate</span>
+              <span class="daily-metric-value engagement">2.41%</span>
+              <div class="daily-metric-trend down">▼ 1.27pp vs Day 2</div>
+            </div>
+          </div>
+        
+
+          <div class="daily-col">
+            <div class="daily-col-head">
+              <span class="daily-col-num">Day 4</span>
+              
+            </div>
+            <div class="daily-metric">
+              <span class="daily-metric-label">Views Added</span>
+              <span class="daily-metric-value">+3,836,171</span>
+            </div>
+            <div class="daily-metric">
+              <span class="daily-metric-label">Avg / Hour</span>
+              <span class="daily-metric-value">159,840</span>
+            </div>
+            <div class="daily-metric">
+              <span class="daily-metric-label">Engagement Rate</span>
+              <span class="daily-metric-value engagement">1.61%</span>
+              <div class="daily-metric-trend down">▼ 0.80pp vs Day 3</div>
+            </div>
+          </div>
+        
+
+          <div class="daily-col">
+            <div class="daily-col-head">
+              <span class="daily-col-num">Day 5</span>
+              <span class="daily-partial">In Progress</span>
+            </div>
+            <div class="daily-metric">
+              <span class="daily-metric-label">Views Added</span>
+              <span class="daily-metric-value">+262,228</span>
+            </div>
+            <div class="daily-metric">
+              <span class="daily-metric-label">Avg / Hour</span>
+              <span class="daily-metric-value">13,801</span>
+            </div>
+            <div class="daily-metric">
+              <span class="daily-metric-label">Engagement Rate</span>
+              <span class="daily-metric-value engagement">1.62%</span>
+              <div class="daily-metric-trend up">▲ 0.01pp vs Day 4</div>
+            </div>
+          </div>
+        
+    </div>
   </div>
 
   <div class="table-card">
