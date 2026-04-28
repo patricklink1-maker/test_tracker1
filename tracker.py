@@ -906,7 +906,7 @@ def build_html(rows: list, meta: dict) -> str:
 
   <div class="trailer-card">
     <a class="trailer-thumb" href="{VIDEO_URL}" target="_blank" rel="noopener">
-      <span class="live-badge"><span class="live-badge-dot"></span>Tracking Complete</span>
+      <span class="live-badge"></span>Tracking Complete</span>
       <img src="{thumbnail_url}" onerror="this.onerror=null;this.src='{fallback_thumb}'" alt="Trailer thumbnail">
     </a>
     <div class="trailer-info">
