@@ -893,8 +893,8 @@ def build_html(rows: list, meta: dict) -> str:
     </div>
     <div class="header-cluster">
          <div class="h-plus">
-        <span class="h-plus-value">H+{h_plus:02d}</span>
-        <span class="h-plus-label">hours since launch</span>
+        <span class="h-plus-value">H+120</span>
+        <span class="h-plus-label">final · tracking ended</span>
       </div>
     </div>
   </div>
